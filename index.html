@@ -1,0 +1,491 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/black.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-markdown>
+					<script type="text/template">
+						# Workshop Kafka
+
+						> Arquitecturas orientadas a eventos usando Kafka
+
+						#### **MÓDULO 1:** Principios de arquitectura EDA y gestión de datos
+
+					</script>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+						> El cambio más importante es la forma de pensar y ver la computación. 
+						Las técnicas usadas en EDA existen y han sido desarrolladas y evolucionadas 
+						desde hace mucho tiempo.
+
+						Kafka es event-driven nativo :)
+					</script>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+						El término arquitectura dirigida por eventos se utiliza para cualquier tipo de sistema de software 
+						que se base en componentes que se comunican principal o exclusivamente a través de eventos.
+						Este paradigma de arquitectura de software promueve la producción, detección, consumo y reacción a eventos.
+						Un evento puede definirse como "un cambio significativo de estado". En el contexto de las EDA, el término "evento"
+						generalmente significa "notificación".
+					</script>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Origen de las arquitecturas EDA
+
+							- Sistemas monoliticos no son capaces de escalar más allá de un par de servidores
+							- Amazon y Netflix: comienzan a ver los servicios como productos
+							- Los equipos de productos son independientes y completos, sólo importa que cumplan contratos y SLAs
+							- La interacción en línea, demanda tiempo real
+
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							### Tiempo Real
+	
+							> Un sistema de tiempo real es un sistema informático que interacciona con su entorno físico y responde a los estímulos 
+							del entorno dentro de un plazo de tiempo determinado., sino que, además, tienen que ejecutarse dentro de un intervalo de 
+							tiempo determinado.
+							
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							### Tiempo Real
+	
+							- Son determinísticos
+							- Son responsivos
+							- A prueba de fallas
+							- Confiables
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown data-background-image="https://media.giphy.com/media/JhMKbTYehsFe8/giphy.gif">
+						<script type="text/template">
+							# Rise of the micro-services!
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							> Eventualmente, aparecen los micro-servicios y se utiliza como comunicación API RPC tipo REST
+
+							- ¿Qué sucede cuando uno de los micro-servicios tiene problemas?
+							- ¿Cómo adminsitro las versiones?
+							- ¿Cómo compenso errores?
+							- ¿Cómo realizo agregaciones con datos de diferentes micro-servicios?
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							### Técnicas de micro-servicios
+
+							- Circuit-breaking
+							- Aggregator
+							- Base de datos compartida
+							- CQRS
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							![alt text](imgs/micro-services-sync.png)
+							
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							![alt text](imgs/death-star.jpeg)
+							
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown data-background-image="https://media.giphy.com/media/3o6ZsTRYszijGIfmRa/giphy.gif">
+						<script type="text/template">
+							# Viendo el negocio como eventos
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						> La computación distribuida necesita mucha inversión y el tiempo real aún más.
+						Si las organizaciones se enfrentan al desafío de la distribución, mñultiples regiones y uptimes de 99.999%.
+						La ingesta de datos va en aumento, IoT, ML, 5G, etc.
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							### ¿Qué pasa con otras tecnologías de datos?
+
+							- **Relacional:** No es buena con series de tiempo ni con distribución
+							- **Documental:** No permite análisis como agregaciones
+							- **Series de tiempo:** no son buena relacionando información
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						### Casos de uso EDA y Real time
+
+						- Asincronismo y bajo acoplamiento
+						- Escala
+						- Captura de comportamientos
+						- Tiempo real
+						- Latencia predecible y controlada
+
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						### Para ser tiempo real, deemos pensar en eventos
+
+						> Un **evento** representa un hecho, algo que sucedió; es inmutable y en consecuencia cambia nuestra
+						forma de pensar sobre un dominio irrevocablemente.
+
+						> Un evento es un cambio significativo en un estado
+					</section>
+
+					<section data-markdown>
+						### Ejemplos de eventos
+
+						- Cuando un consumidor compra un coche, el estado del coche pasa de "se vende" a "vendido"
+						- La orden #3245 ha sido confirmada
+						- La puerta delantwera izquierda del vehículo patente xx-xxxx ha sido abierta a las 11:34:5678Z en la posición (x,y)
+					</section>
+
+					<section data-markdown>
+						### Diferencia entre solicitudes y eventos
+
+						- Un peatón llega a una esquina donde el semáforo está en rojo y les impide cruzar. Presionan un botón en una farola cercana que dice: "Presione aquí para cruzar". Ese peatón esperará un tiempo considerable a que cambie esa luz. Este evento impulsado por solicitudes anticipa cierta latencia.
+
+					</section>
+
+					<section data-markdown>
+						### Diferencia entre solicitudes y eventos
+
+						- Un vehículo autónomo se acerca a la misma esquina con la intención de girar a la izquierda. A medida que se acerca, el semáforo se pone rojo y los automóviles que vienen en sentido contrario comienzan a avanzar. Si ese evento, la luz que se pone roja, experimenta cualquier latencia, puede convertirse en una cuestión de vida o muerte para varias personas. Esto requiere una respuesta impulsada por eventos que sea consistentemente de alta velocidad sin latencia.
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						### Comportamiento (Stream)
+
+						> Un secuencia de eventos relacionados representa un comportamiento
+						y es llamada **"Stream"**
+
+						Un Stream está definido por eventos que comparten una llave que los identifica y genera un secuencia
+						ordenada, reptible e inmutable de eventos relacinados.
+
+					</section>
+					<section data-markdown>
+						### Ejemplos
+
+
+
+
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						### Stream Procesing
+
+						> Un tipo de motor de procesamiento de datos que está diseñado con infinitos conjuntos de datos en mente.
+
+					</section>
+					<section data-markdown>
+						### Garantía de entrega
+
+						No importa lo que suceda, un evento va a ser procesado con alguno de los siguientes tipos:
+
+						- At Least Once
+						- At most Once
+						- Exactly Once
+
+					</section>
+					<section data-markdown>
+						### Tolerancia a Fallos
+
+						En caso de fallas como fallas en los nodos, fallas en la red, etc., el marco debería poder recuperarse y comenzar a procesar 
+						nuevamente desde el punto donde quedó.
+
+					</section>
+					<section data-markdown>
+						### Administración de estado
+
+						En el caso de requisitos de procesamiento con estado en los que necesitamos mantener algún estado 
+						(por ejemplo, recuentos de cada palabra distinta que se ve en los registros), 
+						el marco debería poder proporcionar algún mecanismo para preservar y actualizar la información del estado.
+
+					</section>
+					<section data-markdown>
+						### Desempeño
+
+						Esto incluye latencia (qué tan pronto se puede procesar un registro), rendimiento (registros procesados / segundo) y escalabilidad.
+						La latencia debe ser lo más mínima posible, mientras que el rendimiento debe ser lo más alto posible.
+						Es difícil lograr ambos al mismo tiempo, pero el esfuerzo debe ser luchar por ambos y encontrar un equilibrio dulce.
+
+					</section>
+					<section data-markdown>
+						### Desempeño
+
+						Esto incluye latencia (qué tan pronto se puede procesar un registro), rendimiento (registros procesados / segundo) y escalabilidad.
+						La latencia debe ser lo más mínima posible, mientras que el rendimiento debe ser lo más alto posible.
+						Es difícil lograr ambos al mismo tiempo, pero el esfuerzo debe ser luchar por ambos y encontrar un equilibrio dulce.
+
+					</section>
+					<section data-markdown>
+						### Tipos
+
+						- Native Streaming
+						- Micro-batching
+
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						### El cambio principal de EDA es pensar desde el inicio en eventos y flujos
+
+						> Por ejemplo, las BD tienen conceptos de logs de eventos y operaciones stateless (map, filter) y statefull (reduce, join),
+						pero la diferencia es que están pensadas desde el inicio para soportar relaciones y obtener el máximo rendimiento
+						de un sólo servidor.
+
+					</section>
+					<section data-markdown>
+						### Tecnologías de Stream
+
+						> Existen varias. Muchas nacieron de Hadoop comop **Spark** y existen otrras como **Flink** y **Storm**. **Kafka** es especial 
+						porque considera desde cero un modelo pensado en eventos y streams, es decir, existe un alto acoplamiento en la tecnología
+						de procesamiento y los eventos permitiendo resolver temas como **Exactly-once**
+
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown data-background-image="imgs/immutable-awesomeness.jpeg">
+						<script type="text/template">
+							# Recordatorio, los eventos son inmutables!
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown data-background-image="https://media.giphy.com/media/5YuhLwDgrgtRVwI7OY/giphy.gif">
+						<script type="text/template">
+							# Recordatorio, los streams son ordenados!
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							# Cambio de forma de pensar
+
+							### Base de datos & filas <-> Streams & Events 
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							# No es CQRC
+
+							> EDA parte con eventos en vez del concepto altamente acoplado de "comando": "un evento X ha ocurrido" 
+							en vez de "comando y debe ser ejecutado"
+
+							De CQRC se rescata el "Event Sourcing"
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### En EDA se habla de "Streaming Applications"
+
+							> Las aplicaciones basadas en Stream se construyen a través de procesadores con y sin estado que se aplican sobre un stream. 
+							Ejemplos de procesadores sin estado son map y filter y procesadores con estado aggregations  joins.
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown data-background-image="https://media.giphy.com/media/3gIMtMq7DfbbEkq3Vp/giphy.gif">
+						<script type="text/template">
+							# Sobre mensajería tradicional
+						</script>
+					</section>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+						La mensajería tradicional que ofrece semántica de publicador y suscriptor se diseñó con ACID (Atomicity,
+						Capacidades de coherencia, aislamiento, durabilidad) en mente. Como se define en el teorema de CAP, la atomicidad es una
+						compensación que debemos hacer cuando buscamos escalabilidad y disponibilidad.
+					</script>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+						El middleware de mensajería tradicional no solo no está distribuido y, por lo tanto, no es escalable, sino que también
+						carece de almacenamiento persistente como característica central. Con un servidor de mensajería tradicional, los mensajes se
+						persistien en las colas hasta que el servidor intente una entrega, lo cual no está garantizado. Esto plantea desafíos
+						cuando necesitamos agregar un nuevo servicio y queremos que consuma eventos históricos.
+					</script>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+						Una solución alternativa sería exponer un endpoint en el lado del productor y usar este endpoint para
+						regenerar los eventos deseados. Pero incluso con esta característica, no podemos garantizar que estos eventos
+						sean idénticos a los consumidos anteriormente. Este es un anti-patrón: emparejaría los dos servicios
+						junto con una API, en lugar de con un contrato de transmisión. Un microservicio controlado por eventos debe poder
+						reproducir eventos históricos y mensajes que ocurrieron antes de la existencia del servicio. 
+					</script>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+						# EDA V/S Event Sourcing
+					</script>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							Event Soucing es un término mucho más especial, que se refiere a los sistemas que almacenan todos los cambios en el
+							estado de la aplicación como una secuencia de eventos. Una clase de ejemplos muy conocida son los sistemas de bases de datos
+							transaccionales, que almacenan cualquier cambio de estado en un registro de transacciones. Aquí, el término "evento" se refiere
+							más a "cambio de estado", no solo a "notificación".
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							El estado persiste como una serie de eventos en un lugar llamado "event store". Los eventos nuevos se agregan, pero no 
+							sobrescriben los eventos antiguos. Como resultado, se mantiene todo el historial.
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							El término arquitectura dirigida por eventos se utiliza para cualquier tipo de sistema de software 
+							que se base en componentes que se comunican principal o exclusivamente a través de eventos.
+							Este paradigma de arquitectura de software promueve la producción, detección, consumo y reacción a eventos.
+							Un evento puede definirse como "un cambio significativo de estado". En el contexto de las EDA, el término "evento"
+							generalmente significa "notificación".
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							| EDA                    | Event Sourcing    |
+							|------------------------|-------------------|
+							| Adaptable y escalable  | Mantener historia |
+							| Múltiples aplicaciones | Una aplicacion    |
+							| Descentralizado        | Centralizado      |
+							| Díficil                | Simple            |
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### EDA V/S Blockchain
+
+							Event Driven Architecture o EDA para abreviar tiene mucho en común con blockchain, sin embargo, 
+							la naturaleza casi en tiempo real en la que maneja el flujo de información dentro o entre sistemas informáticos es lo 
+							que hace que EDA sea más adecuado para ciertas operaciones comerciales e interacciones con los clientes.
+							
+							Blockchain funciona bien para transacciones, EDA funciona mejor para información. Sin embargo, Blockchain soporta nativamente
+							una de las caracterísitcas principales de EDA, **INMUTABILIDAD DE EVENTOS**.
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown data-background-image="https://media.giphy.com/media/FSfAQUJP39cxa/giphy.gif">
+						<script type="text/template">
+							# Distributed Consensus: Single Source of truth
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							#### Distributed Consensus: Single Source of truth
+
+							No es explícito en EDA, pero todo sistema distribuido necesita consenso distribuido para lamacenar hechos comunes. Por ejemplo:
+
+							- Selección de líder
+							- Topología
+							- Descubrimiento de servicios
+							- Lista de tópicos
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							#### Existen 2 tipos principales de consenso distribuido
+
+							- PAXOS (Zookeeper)
+							- [RAFT](http://thesecretlivesofdata.com/raft/) (etcd)
+						</script>
+					</section>
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+			});
+		</script>
+	</body>
+</html>
