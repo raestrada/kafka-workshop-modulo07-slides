@@ -30,6 +30,48 @@
 				<section>
 					<section data-markdown>
 						<script type="text/template">
+							# Kafka
+
+							> Apache Kafka es una plataforma distribuida para streaming de eventos
+							enfocada a pipelines de datos de alto desempeño, streaming analytics, integración
+							de datos y aplicaciónes críticas. Al soportar nativamente eventos y streams, es una
+							excelente elcción para hub de eventos para micro-servicios masivos.
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							# Capacidades
+
+							- High throughput
+							- Baja latencia (hasta 2ms)
+							- Escalable
+							- Persistencia permanente sin degradación de desempeño
+							- Alta disponibilidad
+							- Procesamiento de Stream nativo
+							- Integración con dicersas fuentes de datos
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							# Alternativas
+
+							- [Apache Pulsar](https://pulsar.apache.org/)
+							- [Azure Event Hub](https://azure.microsoft.com/en-us/services/event-hubs/)
+							- [AWS Kinesis](https://aws.amazon.com/es/kinesis/)
+							- Parciales (sólo stream): Spark, Storm, Flink
+
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							# Tradeoff (limitaciones)
+
+							- Nodos (particiones) son stateful
+							- Repicación Leader/Follower (problemas de latencia) -> Solución en Kafka 3
+							- No existe soporte nativo para multi-tenancy
+							- Kafka stream se ejecuta como una aplicación aparte
+							- No existe soporte de multi-región nativo -> MirrorMaker 2, se está acercando
+
 						</script>
 					</section>
 				</section>
