@@ -28,6 +28,20 @@
 				</section>
 
 				<section>
+					<section data-markdown data-background-image="https://media.giphy.com/media/SCBMYV8nXzaO7tMfj3/giphy.gif">
+						<script type="text/template">
+							# Kafka
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							> Jay Kreps eligió nombrar el software en honor al autor Franz Kafka porque es 
+							"un sistema optimizado para la escritura", y le gustó el trabajo de Kafka.
+						</script>
+					</section>
+				</section>
+
+				<section>
 					<section data-markdown>
 						<script type="text/template">
 							### Kafka
@@ -149,7 +163,7 @@
 							### ¿Qué significa que Kafka sea una plataforma de eventos?
 
 							- Permite publicar y subscribirse a un streaming de eventos
-							- Permite alamacenar eventos en forma diradera y confiable, tato tiempo como sea necesario
+							- Permite almacenar eventos en forma diradera y confiable, tato tiempo como sea necesario
 							- Permite procesar eventos en tiempo real y retrospectivamente 
 						</script>
 					</section>
@@ -179,6 +193,169 @@
 							- Cliente:
 								* Productor
 								* Consumidor
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown data-background-image="https://media.giphy.com/media/6iBJ8I2x9Rkmk/giphy.gif">
+						<script type="text/template">
+							# Conceptos principales
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Eventos
+
+							> Un evento registra un **hecho** que sucedió en el contexto de un dominio de negocio.
+							
+							Los eventos son referidos como:
+
+							- Event
+							- Record
+							- Message
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Eventos
+
+							Un evento está compuesto por:
+
+							- Key
+							- Value
+							- Timestamp
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							### Ejemplos
+
+							- **Key:** Número de Orden
+							- **Value:** creada con 1 kilo de harina, zapallo, 3 lt aceite, 500 gr sal.
+							- **Timestamp:** "1 de Julio 2021 11:231:45.567"
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							### Ejemplos
+
+							- **Key:** Rodrigo
+							- **Value:** realiza un pago de $10.000 a Andrés
+							- **Timestamp:** "1 de Julio 2021 11:231:45.567"
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Producer
+
+							> Son aplicaciones clientes que producen (escriben) eventos.
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Consumer
+
+							> Son aplicaciones clientes consumen (leen) eventos.
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Tópicos
+
+							> Los eventos están organizados y almacenados en forma duradera en tópicos. Los Tópicos
+							puede ser escritos y leídos por múltiples producers y consumers. 
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							> Los eventos no son eliminados después de ser consumidos y pueden ser retenidos
+							sin impacto en el desempeño , tanto como se requiera. 
+							Pueden ser léidos en cualquier momento.
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Particiones
+
+							> Los tópicos son particionados en buckets localizados en diferente brockers. eventos
+							como la misma llave son escritos en la misma partición y Kafka garantiza que cualquier 
+							consumidor leyendo una partición, va a leer lso eventos en exactamente el mismo orden.
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							![kafka-topic-parition](imgs/kafka-topic-parition.png)
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							Cada partición es un archivo de log simple escrito con **"append"**
+
+							![kafka-parittion](imgs/kafka-partition.png)
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							A cada evento se le asigna un número correlativo dentro de la partición único e inmutable.
+							
+							![kafka-offset](imgs/kafka-offsets.png)
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							> Kafka no garantiza orden y unicidad entre particiones.
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Replicas
+
+							> Para permitir tolerancia a fallos y alta disponibilidad, cada tópico
+							puede ser replicado, incluso a través de regiones y data-centers (Confluent).
+							La selección mas común de replicas es 3, y significa que Kafka garantiza que 3
+							brokers independientes tiene copia de la partición. 
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							### Líder
+
+							> Kafka genera un líder de partición usando consenso distribuido. EL resto de los brokers
+							actúan como seguidores.
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							### ACK
+
+							- ack=0: Kafka recibe el mensaje y no espera confirmación
+							- ack=1: Al menos el leader a confirmado el evento
+							- ack=2: Kafka considera que un evento está confirmado cuando todas las réplicas confirman
+							el almacenamiento del evento.
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							### In Sync Replica (ISR)
+
+							> Balance entre seguridad y disponibilidad/latencia. Define el número mínimo de seguodores
+							que deben estar sincronizados con el líder. 
 						</script>
 					</section>
 				</section>
