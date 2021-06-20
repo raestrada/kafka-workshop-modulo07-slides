@@ -75,6 +75,56 @@
 						</script>
 					</section>
 				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Kafka (+ específico)
+
+							- Sistema de mensajería
+							- Duradero (durable)
+							- Publish/Subscriber
+							- Basado en logs secuenciales inmutables
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Kafka Casos de usos
+
+							- Redes sociales (posts, like, etc)
+							- Mensajería
+							- Seguimiento de actividad (Web)
+							- Métricas (ver log compaction)
+							- Agregación de logs
+							- Procesamiento de streams
+							- Event Sourcing
+							- Micro-servicios
+							- Commit logs (ver log compaction)
+
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Kafka Casos de use for real
+
+							- Activision: Call of Dutty tiene más de 1000 tópicos y maneja entre 
+							10k y 100k de mensajes por segundo. Se usa para estadísticas dentro del juego.
+							- Tinder: Notificaciones para usuarios, analítica, moderación de contenido, recomendaciones.
+							Procesanmás de 40TB por día en el 2018.
+							- Pinterest: Cada click, repin o modficación de foto, genera un mensaje en kafka. Además es usado para
+							indexación, recomendaciones, detección de Spam y estimación de presupuesto.
+							- Uber: Usan kafka para adminsitrar más de 1 millón de millones de mensajes por día (PBs de datos). 
+							Para esto usan [su propia solución de replicación](https://github.com/uber/uReplicator).
+							- Linkedin: Adminsitran 7 millones de millones de mensajes por días en más de 100.000 tópicos
+							con 7 millones de particiones y más de 4000 brokers.
+
+
+					</section>
+				</section>
 			</div>
 		</div>
 
