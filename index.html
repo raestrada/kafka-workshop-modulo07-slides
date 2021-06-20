@@ -22,253 +22,11 @@
 
 						> Arquitecturas dirigidas a eventos usando Kafka
 
-						#### **MÓDULO 2:** Principios de arquitectura EDA y gestión de datos
+						#### **MÓDULO 3:** Tópicos, particiones, Brokers
 
 					</script>
 				</section>
 
-				<section>
-					<section data-markdown data-background-image="https://media.giphy.com/media/SCBMYV8nXzaO7tMfj3/giphy.gif">
-						<script type="text/template">
-							# Kafka
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							> Jay Kreps eligió nombrar el software en honor al autor Franz Kafka porque es 
-							"un sistema optimizado para la escritura", y le gustó el trabajo de Kafka.
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Kafka
-
-							> Apache Kafka es una plataforma distribuida para streaming de eventos
-							enfocada a pipelines de datos de alto desempeño, streaming analytics, integración
-							de datos y aplicaciónes críticas. Al soportar nativamente eventos y streams, es una
-							excelente elcción para hub de eventos para micro-servicios masivos.
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							### Capacidades
-
-							- High throughput
-							- Baja latencia (hasta 2ms)
-							- Escalable
-							- Persistencia permanente sin degradación de desempeño
-							- Alta disponibilidad
-							- Procesamiento de Stream nativo
-							- Integración con dicersas fuentes de datos
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							### Alternativas
-
-							- [Apache Pulsar](https://pulsar.apache.org/)
-							- [NATS JetStream](https://docs.nats.io/jetstream/jetstream) -> MUY INTERESANTE
-							- [Azure Event Hub](https://azure.microsoft.com/en-us/services/event-hubs/)
-							- [AWS Kinesis](https://aws.amazon.com/es/kinesis/)
-							- Parciales (sólo stream): Spark, Storm, Flink
-
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							### Tradeoff (limitaciones)
-
-							- Nodos (particiones) son stateful
-							- Repicación Leader/Follower (problemas de latencia) -> Solución en Kafka 3
-							- No existe soporte nativo para multi-tenancy
-							- Kafka stream se ejecuta como una aplicación aparte
-							- No existe soporte de multi-región nativo -> MirrorMaker 2, se está acercando
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Kafka (+ específico)
-
-							- Sistema de mensajería
-							- Duradero (durable)
-							- Publish/Subscriber
-							- Basado en logs secuenciales inmutables
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Kafka Casos de usos
-
-							- Redes sociales (posts, like, etc)
-							- Mensajería
-							- Seguimiento de actividad (Web)
-							- Métricas (ver log compaction)
-							- Agregación de logs
-							- Procesamiento de streams
-							- Event Sourcing
-							- Micro-servicios
-							- Commit logs (ver log compaction)
-						</script>
-					</section>
-
-					<section data-markdown>
-						<script type="text/template">
-							### Kafka Casos de uso for real
-							- **Pinterest:** Cada click, repin o modficación de foto, genera un mensaje en kafka. Además es usado para
-							indexación, recomendaciones, detección de Spam y estimación de presupuesto.
-							- **Uber:** Usan kafka para adminsitrar más de 1 millón de millones de mensajes por día (PBs de datos). 
-							Para esto usan [su propia solución de replicación](https://github.com/uber/uReplicator).
-							- **Linkedin:** Adminsitran 7 millones de millones de mensajes por días en más de 100.000 tópicos
-							con 7 millones de particiones y más de 4000 brokers.
-						</script>
-					</section>
-
-					<section data-markdown>
-						<script type="text/template">
-							### Kafka Casos de uso for real
-
-							- **Activision:** Call of Dutty tiene más de 1000 tópicos y maneja entre 
-							10k y 100k de mensajes por segundo. Se usa para estadísticas dentro del juego.
-							- **Tinder:** Notificaciones para usuarios, analítica, moderación de contenido, recomendaciones.
-							Procesan más de 40TB por día en el 2018.
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Kafka es una plataforma de Straming de Eventos
-
-							> **"Event Straming"** es la práctica de capturar datos en tiempo real de fuentes de 
-							eventos como bases de datos, sensores, dispositivos móviles, servicios en la nube y 
-							aplicaciones de software en forma de secuencias de eventos; almacenar estos flujos de 
-							eventos de forma duradera para su posterior recuperación; manipular, procesar y reaccionar
-							a los flujos de eventos en tiempo real y retrospectivamente; y enrutar los flujos de 
-							eventos a diferentes tecnologías de destino según sea necesario - _Confluent_
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							### ¿Qué significa que Kafka sea una plataforma de eventos?
-
-							- Permite publicar y subscribirse a un streaming de eventos
-							- Permite almacenar eventos en forma diradera y confiable, tato tiempo como sea necesario
-							- Permite procesar eventos en tiempo real y retrospectivamente 
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							![kafka-high-level](imgs/kafka-high-level.png)
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							### Kafka es distribuido
-
-							> A diferencia de tecnologías de mensajería tradicional y centralizada,
-							los clientes son parte de Kafka y cumplen funciones importantes. 
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							### Kafka componentes
-
-							- Servidor
-								* Brokers
-								* Zookeeper
-							- Cliente:
-								* Productor
-								* Consumidor
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown data-background-image="https://media.giphy.com/media/6iBJ8I2x9Rkmk/giphy.gif">
-						<script type="text/template">
-							# Conceptos principales
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Eventos
-
-							> Un evento registra un **hecho** que sucedió en el contexto de un dominio de negocio.
-							
-							Los eventos son referidos como:
-
-							- Event
-							- Record
-							- Message
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Eventos
-
-							Un evento está compuesto por:
-
-							- Key
-							- Value
-							- Timestamp
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							### Ejemplos
-
-							- **Key:** Número de Orden
-							- **Value:** creada con 1 kilo de harina, zapallo, 3 lt aceite, 500 gr sal.
-							- **Timestamp:** "1 de Julio 2021 11:231:45.567"
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							### Ejemplos
-
-							- **Key:** Rodrigo
-							- **Value:** realiza un pago de $10.000 a Andrés
-							- **Timestamp:** "1 de Julio 2021 11:231:45.567"
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Producer
-
-							> Son aplicaciones clientes que producen (escriben) eventos.
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Consumer
-
-							> Son aplicaciones clientes consumen (leen) eventos.
-						</script>
-					</section>
-				</section>
 				<section>
 					<section data-markdown>
 						<script type="text/template">
@@ -296,11 +54,15 @@
 							consumidor leyendo una partición, va a leer lso eventos en exactamente el mismo orden.
 						</script>
 					</section>
+				</section>
+				<section>
 					<section data-markdown>
 						<script type="text/template">
 							![kafka-topic-parition](imgs/kafka-topic-parition.png)
 						</script>
 					</section>
+				</section>
+				<section>
 					<section data-markdown>
 						<script type="text/template">
 							Cada partición es un archivo de log simple escrito con **"append"**
@@ -308,6 +70,8 @@
 							![kafka-parittion](imgs/kafka-partition.png)
 						</script>
 					</section>
+				</section>
+				<section>
 					<section data-markdown>
 						<script type="text/template">
 							A cada evento se le asigna un número correlativo dentro de la partición único e inmutable.
@@ -315,6 +79,8 @@
 							![kafka-offset](imgs/kafka-offsets.png)
 						</script>
 					</section>
+				</section>
+				<section>
 					<section data-markdown>
 						<script type="text/template">
 							> Kafka no garantiza orden y unicidad entre particiones.
@@ -332,6 +98,8 @@
 							brokers independientes tiene copia de la partición. 
 						</script>
 					</section>
+				</section>
+				<section>
 					<section data-markdown>
 						<script type="text/template">
 							### Líder
@@ -340,6 +108,8 @@
 							actúan como seguidores.
 						</script>
 					</section>
+				</section>
+				<section>
 					<section data-markdown>
 						<script type="text/template">
 							### ACK
@@ -350,11 +120,13 @@
 							el almacenamiento del evento.
 						</script>
 					</section>
+				</section>
+				<section>
 					<section data-markdown>
 						<script type="text/template">
 							### In Sync Replica (ISR)
 
-							> Balance entre seguridad y disponibilidad/latencia. Define el número mínimo de seguodores
+							> Balance entre seguridad y disponibilidad/latencia. Define el número mínimo de seguidores
 							que deben estar sincronizados con el líder. 
 						</script>
 					</section>
