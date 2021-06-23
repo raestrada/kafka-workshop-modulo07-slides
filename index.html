@@ -22,644 +22,222 @@
 
 						> Arquitecturas dirigidas a eventos usando Kafka
 
-						#### **MÓDULO 3:** Tópicos, particiones, Brokers
-
-						* Basado en [Understanding Kafka Topic Partitions](https://medium.com/event-driven-utopia/understanding-kafka-topic-partitions-ae40f80552e8)
-
+						#### **MÓDULO 4:** Producer/Consumer (delivery semantics)
 					</script>
 				</section>
 
 				<section>
-					<section data-markdown>
+					<section data-markdown data-background-image="https://media.giphy.com/media/I40IC1hhCpVG5OxaHQ/giphy.gif">
 						<script type="text/template">
-							### Tópicos
-
-							> Los eventos están organizados y almacenados en forma duradera en tópicos. Los Tópicos
-							puede ser escritos y leídos por múltiples producers y consumers. 
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							> Los eventos no son eliminados después de ser consumidos y pueden ser retenidos
-							sin impacto en el desempeño , tanto como se requiera. 
-							Pueden ser léidos en cualquier momento.
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Particiones
-
-							> Los tópicos son particionados en buckets localizados en diferente brokers. eventos
-							como la misma llave son escritos en la misma partición y Kafka garantiza que cualquier 
-							consumidor leyendo una partición, va a leer lso eventos en exactamente el mismo orden.
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							![kafka-topic-parition](imgs/kafka-topic-parition.png)
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							Cada partición es un archivo de log simple escrito con **"append"**
-
-							![kafka-parittion](imgs/kafka-partition.png)
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							A cada evento se le asigna un número correlativo dentro de la partición único e inmutable.
-							
-							![kafka-offset](imgs/kafka-offsets.png)
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							> Kafka no garantiza orden y unicidad entre particiones.
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Replicas
-
-							> Para permitir tolerancia a fallos y alta disponibilidad, cada tópico
-							puede ser replicado, incluso a través de regiones y data-centers (Confluent).
-							La selección mas común de replicas es 3, y significa que Kafka garantiza que 3
-							brokers independientes tiene copia de la partición. 
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Líder
-
-							> Kafka genera un líder de partición usando consenso distribuido. EL resto de los brokers
-							actúan como seguidores.
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### ACK
-
-							- ack=0: Kafka recibe el mensaje y no espera confirmación
-							- ack=1: Al menos el leader a confirmado el evento
-							- ack=2: Kafka considera que un evento está confirmado cuando todas las réplicas confirman
-							el almacenamiento del evento.
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### In Sync Replica (ISR)
-
-							> Balance entre seguridad y disponibilidad/latencia. Define el número mínimo de seguidores
-							que deben estar sincronizados con el líder. 
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Balanceo de carga
-
-							Por eficiencia y latencia, Kafka conecta al cliente directo a la IP del broker dónde
-							está la partición requerida. Cualquier broker es capaz de redirigir al cliente o se puede
-							usar el servicio de bootstraping de kafka, qie interactúa directo con Zookeeper.
-							
-							1. Cliente solicita conexión a partición
-							2. Bootstrap (o broker), devuelve la IP del broker
-							3. Cliente se conecta al broker
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown data-background-color="aquamarine">
-						<script type="text/template">
-							### Balanceo de carga
-
-							Esta característica, hace que el balanceo de carga tradicional no sea óptimo para kafka.
-
-							![strimzi-load-balance](imgs/strimzi-load-balance.png)
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown data-background-image="https://media.giphy.com/media/iNQ2cIve8rUqI/giphy.gif">
-						<script type="text/template">
-							# Laboratorio
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### [Ambiente productivo de Kafka](https://github.com/raestrada/kafka-workshop-modulo03-lab1)
-
-							- Crear ambiente productivo de kafka
-							- Desarrollar cliente productor y consumidor y conectarlo
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Problemas de recursos en equipo de trabajo
-							Una recomendación es trabajar en Linux y en caso de no tener recursos suficientes, se puede crear una cuenta
-gratis por USD$100 en [Digital Ocean's](https://try.digitalocean.com/freetrialoffer) o en [Linode](https://www.linode.com/lp/free-credit-100) y disfrutar de una máquina virtual Ubuntu de 4 cores
-y 8GBG RAM. Para trabajo local, se puede montar la carpeta de trabajo de la VM usando [SSHFS](https://www.digitalocean.com/community/tutorials/how-to-use-sshfs-to-mount-remote-file-systems-over-ssh)
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Crear cluster Kubernetes
-
-							1. Actualizar apt-get
-
-							```bash 
-							$ sudo apt-get update
-							```
-
-							2. Instalar dependencias de Docker 
-
-							```bash 
-							$ sudo apt-get install     apt-transport-https     ca-certificates     curl     gnupg     lsb-release
-							```
-
-							3. Registrar repositorio de Docker
-
-							```bash 
-							$ echo   "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-							$(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-							```
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Crear cluster Kubernetes
-
-							4. Actualizar apt-get
-
-							```bash 
-							$ sudo apt-get update
-							```
-
-							5. Instalar Docker CE
-
-							```bash 
-							$ sudo apt-get install docker-ce docker-ce-cli containerd.io
-							```
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Crear cluster Kubernetes
-
-							4. Actualizar apt-get
-
-							```bash 
-							$ sudo apt-get update
-							```
-
-							5. Instalar Docker CE
-
-							```bash 
-							$ sudo apt-get install docker-ce docker-ce-cli containerd.io
-							```
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Crear cluster Kubernetes
-
-							6. Instalar kind
-   
-							```
-							$ curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
-							$ chmod +x ./kind
-							$ sudo mv ./kind /usr/bin/kind
-							```
-
-							7. Crear cluster k8s
-							
-							```bash
-							kind create cluster --name strimzi-lab
-							```
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Crear cluster Kubernetes
-
-							8. Instalar kubectl
-
-							```bash
-							$ sudo apt-get install -y apt-transport-https ca-certificates curl
-							$ sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-							$ echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-							$ sudo apt-get update
-							$ sudo apt-get install -y kubectl
-							```
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Crear cluster Kubernetes
-
-							9. Instalar [krew](https://krew.sigs.k8s.io/) / **NO USAR EN PRODUCCION**/
-
-							```bash
-							$ (
-							set -x; cd "$(mktemp -d)" &&
-							OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
-							ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
-							curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/krew.tar.gz" &&
-							tar zxvf krew.tar.gz &&
-							KREW=./krew-"${OS}_${ARCH}" &&
-							"$KREW" install krew
-							)
-
-							$ echo 'export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"' > ~/.bashrc
-							$ export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
-							```
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Crear cluster Kubernetes
-
-							9. Instalar kubectx y kubens
-
-							```bash
-							$ kubectl krew install ctx
-							$ kubectl krew install ns
-							```
-
-							10. Instalar [Skaffold](https://skaffold.dev/)
-
-							```bash
-							$ curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
-							$ sudo install skaffold /usr/local/bin/
-							```
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Instalar Kafka
-
-							Para Kafka en modo productivo el primer paso es decargar la distribucón strimzi-lab
-							consistente en una serie de manifiestos Kubernetes e imágenes de Docker. Descargar
-							la distribución de Strimzi [aquí](https://strimzi.io/docs/operators/latest/deploying.html).
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Instalar Kafka
-
-							Cambiar el namespace por el nombre deseado:
-
-							```bash
-							$ sed -i 's/namespace: .*/namespace: my-cluster-operator-namespace/' install/cluster-operator/*RoleBinding*.yaml
-							```
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Crear un manifesto para desplegar kafka
-							```yaml
-							apiVersion: kafka.strimzi.io/v1beta2
-							kind: Kafka
-							metadata:
-							name: lab
-							namespace: kafka
-							spec:
-							kafka:
-								version: 2.8.0
-								replicas: 1
-								listeners:
-								- name: plain
-									port: 9092
-									type: internal
-									tls: false
-								- name: tls
-									port: 9093
-									type: internal
-									tls: true
-								- name: external
-									port: 9094
-									type: ingress
-									tls: true
-									configuration:
-									bootstrap:
-										host: bootstrap.io
-									brokers:
-									- broker: 0
-										host: broker-0.io
-								config:
-								offsets.topic.replication.factor: 1
-								transaction.state.log.replication.factor: 1
-								transaction.state.log.min.isr: 1
-								log.message.format.version: "2.8"
-								inter.broker.protocol.version: "2.8"
-								storage:
-								type: jbod
-								volumes:
-								- id: 0
-									type: persistent-claim
-									size: 10Gi
-									deleteClaim: false
-							zookeeper:
-								replicas: 1
-								storage:
-								type: persistent-claim
-								size: 10Gi
-								deleteClaim: false
-							entityOperator:
-								topicOperator: {}
-								userOperator: {}
-							```
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Instalar Kafka
-
-							En el ejemplo del laboratorio, ya viene pre-configurada la distribución:
-
-							```bash
-							$ kubectl apply -f k8s/strimzi
-							```
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Exponer servicios en kafka
-
-							> Strimzi provee varias formas de exponer los servicios fiera del cluster en forma productiva.
-							La más eficiente es usar nodeports. La más simple es usar un "ingress controller". 
-
-							Vamos a usar un ingress controller (Nginx)
 							
 						</script>
 					</section>
 				</section>
+
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Exponer servicios en kafka
+							### Productor
 
-							> Kind se ejecuta en Docker, por lo tanto se debe exponer a través de la red bridge
-							y no se puede usar el load balancer de Strimzi. Para facilitar su exposición, vamos a 
-							usar un deployment de Nginx por node port.
+							> El productor es una aplicación que envía eventos a un broker. Puede ser 
+							la misma aplicación donde ocurre el evento o un itermediario. Por ejemplo, 
+							para sistemas monolítcos y legados, se suele usar Kafka Connect.
 							
+							Más adelante vamos a ve [Debezium](https://debezium.io/) para transformar BD en sistemas orientados a 
+							Streaming de Eventos
 						</script>
 					</section>
 				</section>
+
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Exponer servicios en kafka
+							### Productor
 
-							En ```k8s/nginx/deploy.yml``` está pre-configurado un deployment de Nginx como ingress. 
-							Es necesario habilitar el ssl passthrough para TLS:
-
-							```yaml
-							containers:
-							- name: controller
-							image: k8s.gcr.io/ingress-nginx/controller:v0.46.0@sha256:52f0058bed0a17ab0fb35628ba97e8d52b5d32299fbc03cc0f6c7b9ff036b61a
-							imagePullPolicy: IfNotPresent
-							lifecycle:
-								preStop:
-								exec:
-									command:
-									- /wait-shutdown
-							args:
-								- /nginx-ingress-controller
-								- --election-id=ingress-controller-leader
-								- --ingress-class=nginx
-								- --configmap=$(POD_NAMESPACE)/ingress-nginx-controller
-								- --validating-webhook=:8443
-								- --validating-webhook-certificate=/usr/local/certificates/cert
-								- --validating-webhook-key=/usr/local/certificates/key
-								- --enable-ssl-passthrough
-							```
+							Es importante garantizar que el productor elija muy bien la llave de cada evento
+							para permitir una distribución aceptable. En el caso de eventos pub/sub puros,
+							existen mejores soluciones que Kafka ([NATS](https://nats.io/), cof, cof, [NATS](https://nats.io/)).
+							Asumiendo el uso para Stream de eventos, recordar que:
 							
+							- El orden se garantiza por partición, es decir, por llave
+							- La unicidad está dada por la llave y es requerida para de-duplicación (salvo que se use Exactly-once)
+							- La idempotencia también depende de la llave.
+
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							> La llave tiene que ser de uso genérico. Siempre considerar que es posible mover
+							los eventos usando diferentes llaves y tópicos para cubrir diferentes agregaciones o
+							agrupaciones y todo esto en tiempo real, esa es una de las gracias de Kafka, **ÚSALO!**
+
 						</script>
 					</section>
 				</section>
+
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Exponer servicios en kafka
+							### ¿Cuántos tópicos y cómo elegirlos?
 
-							Luego hay que exponer los node ports en la red Docker en los puertos 80 y 443 del equipo
-							de trabajo. Para esto, vamos a usar [socat](https://hub.docker.com/r/alpine/socat):
+							> En estricto rigor, un tópico permite a un consumidor especificar un sub-conjunto de
+							mensajes que quiere consumir.
 
-							```bash
-							for port in 80 443
-							do
-								node_port=$(kubectl get service -n ingress-nginx ingress-nginx-controller -o=jsonpath="{.spec.ports[?(@.port == ${port})].nodePort}")
+							* Es cierto que se pueden filtrar los mensajes basados en headers, pero mientras más tipos
+							de mensajes en un tópico, más ineficiente es la lectura retro-activa (una de las gracias de Kafka)
+							y más mensajes se necesitan escuchar para recibir los que se necesitan.
 
-								docker run -d --name strimzi-lab-kind-proxy-${port} \
-								--publish 127.0.0.1:${port}:${port} \
-								--network=kind \
-								--link strimzi-lab-control-plane:target \
-								alpine/socat -dd \
-								tcp-listen:${port},fork,reuseaddr tcp-connect:target:${node_port}
-							done
-							```
 						</script>
 					</section>
 				</section>
+
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Exponer servicios en kafka
+							### ¿Cuántos tópicos y cómo elegirlos?
 
-							Lo siguiente es configurar nombres DNS para los servicios:
+							> Las particiones son lo que define el desempeño y la utilidad de kafka
 
-							```yaml
-							- name: external
-							port: 9094
-							type: ingress
-							tls: true
-							configuration:
-							bootstrap:
-								host: bootstrap.io
-							brokers:
-							- broker: 0
-								host: broker-0.io
-							```
-							
+							La primera respuesta es tener tantos tópicos para permitir suficientes particiones
+							para trabajar con ellas, pero no tantos para que cada partición contenga 
+							demasiado pocos eventos.
+
 						</script>
 					</section>
 				</section>
+
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Exponer servicios en kafka
+							> Una regla heurística para no afectar la latencia, es tener
+							del orden de magnitud de cientos de particiones por broker. En varias
+							implementaciones se ha visto que miles comienza a ser un problema. Decenas,
+							cae dentro del orden don Kafka no es tan útil.
 
-							Finalmente, agreguemos los nombres a ```/etc/hosts```:
+							* ¿Por qué cientos?, ¿Qué sucede si no tengo datos suficientes? -> 
+							Probablemente Kafka sea una solución exagerada :).
 
-							```bash
-							sudo echo "127.0.0.1 bootstrap.io" >> /etc/hosts
-							sudo echo "127.0.0.1 broker-0.io" >> /etc/hosts
-							```	
 						</script>
 					</section>
 				</section>
+
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Conexión segura por TLS
-							
-							Es necesario descargar las utilidades de kafka:
+							¿Por qué se asume que siempre vas a querer más particiones?
 
-							```bash
-							$ curl "https://downloads.apache.org/kafka/2.8.0/kafka_2.13-2.8.0.tgz" -o kafka.tgz
-							$ tar -zxvf kafka.tgz
-							$ mv kafka_2.13-2.8.0 kafka
-							```
+							- Más particiones aumentan el Throughput
 							
+							... pero requiere más archivos abiertos, latencia en selección de líderes 
+							(problemas de disponibilidad), aumenta la latencia y requiere más memoria en el cliente.
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							### No es una BD relacional, Tópico <> Tabla!
+
+							Para dejar claro, el tópico es una agrupación general, lo que define un evento es su llave.
+							
+							> Un error común es obligar a que un tópico agrupe eventos del mismo tipo.
+
+							Para eventos que requieren esquemas como logs de actividades, tiene sentido tener tópicos 
+							específicos, no así para Micro-Servicios.
+
 						</script>
 					</section>
 				</section>
+
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Conexión segura por TLS
-							
-							Los certificados de acceso a kafka y la llave del certificado son almacenados
-							como secretos en k8s. Para obtenerlos:
+							> Por ejemplo, para un micro-servicio (dominio) Cliente. Muchas cosas
+							pueden suceder a un cliente, como ser creado, cambiar de teléfono o dirección,
+							pagar, solicitar soporte, etc. 
 
-							```bash
-							$ kubectl get secret lab-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > client.p12
-							$ kubectl get secret lab-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d > client.password
-							```
+							Los eventos de un dominio, pueden ser mucho y no son predecible. Tampoco es predecible 
+							conocer que tipos de eventos va a necesitar otro dominio suscrito a Cliente.
 						</script>
 					</section>
 				</section>
+
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Conexión segura por TLS
-							
-							El siguiente paso es generar el keystore y el truestore para kafka:
+							### ¿Qué sucede con el orden?
 
-							```bash
-							$ keytool -importkeystore -srckeystore client.p12 -destkeystore kafka.client.keystore.jks -srcstoretype pkcs12 -alias lab -storepass $(cat client.password) -noprompt
-							$ keytool -importkeystore -srckeystore client.p12 -destkeystore kafka.client.keystore.jks -srcstoretype pkcs12
-							$ sudo mkdir -p /var/private/ssl
-							$ sudo cp kafka.client.*.jks /var/private/ssl/
-							```
+							Recordar que el orden está garantizado por partición y por llave. Para garantizar el orden
+							para cierto tipo de evento, se debe diseñar la llave de forma que todos los eventos relacionados
+							de un tipo, siempre estén en la misma partición. Luego, sólo es necesario filtrar.
+
+							> En el caso del cliente, el ID de cliente como llave, es suficiente. 
+							Todos los eventos relacionados con un cliente particular, va a estar en la misma partición.
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							### ¿Qué sucede si uso un tópico por tipo de evento?
+							
+							Si tengo un evento para creación y cambio de dirección, no se garantiza el orden para
+							un cliente particular. Puede ser peor si es para un pago. Agregar un timestamp o un indicador
+							de orden, hace que todos los beneficios de usar Kafka no se aprovechen.
+
 						</script>
 					</section>
 				</section>
+
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Conexión segura por TLS
-							
-							Luego se debe generar un archivo de properties, por ejemplo, ```client.properties```:
+							### Resumen
 
-							```conf
-							security.protocol=SSL
-							ssl.keystore.location=/var/private/ssl/kafka.client.keystore.jks
-							ssl.keystore.password=<keystore password>
-							ssl.key.password=<pkcs12 password>
-							ssl.truststore.location=/var/private/ssl/kafka.client.truststore.jks
-							ssl.truststore.password=<truststore password>
-							```
+							- Todos los eventos que deben seguir un orden según una llave, deben estar
+							en el mismo tópico.
+							- Si 2 entidades tienen una dependencia, deberían estar en el mismo tópico,
+							si no están relacionadas, deberían estar en diferentes.
 
-							y ejecutar: ```bash chmod 0600 client.properties ```
-							
 						</script>
 					</section>
 				</section>
+
+
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Conexión segura por TLS
-							
-							Antes de ejecutar el cliente, debemos crar un tópico:
+							### Productor - ¿Qué debería ir en un evento?
 
-							```yaml
-							apiVersion: kafka.strimzi.io/v1beta2
-							kind: KafkaTopic
-							metadata:
-							name: test
-							labels:
-								strimzi.io/cluster: "lab"
-							spec:
-							partitions: 3
-							replicas: 1
-							```
-							
+							Luego de la llave es importante la decisión de que va en un evento. Tenemos 2 casos principales:
+
+							- El evento afecta a una sóla entidad.
+							- El evento afecta a varias entidades.
+
 						</script>
 					</section>
 				</section>
+
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Conexión segura por TLS
-							
-							Finalmente se puede ejecutar un productor:
+							### El evento afecta a una sóla entidad
 
-							```bash
-							$ kafka/bin/kafka-console-producer.sh --broker-list producer.io:443 -topic test --producer.config client.properties
-							```
+							En este caso, debe ir:
 
-							y luego un consumidor en otro terminal:
+							- Todo lo necesario para identificar inequívocamente la entidad (idealmente la llave).
+							- Todo los datos relacionados con el cambio de estado (la diferencia entre el estado anterior 
+							y el estado actual).
 
-							```bash
-							$ kafka/bin/kafka-console-consumer.sh bin/kafka-console-consumer --bootstrap-server bootstrap.io:443 --topic test --consumer.config client.properties --from-beginning
-							```
-							
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Pensando en Event Sourcing
+
+							> No es necesario enviar el estado completo en cada evento. El estado se puede reconstruir
+							a partir de la historia y también se pueden establecer "checkpoints" de estado consolidado
+							cada cierto tiempo o número de mensajes.
+
 						</script>
 					</section>
 				</section>
