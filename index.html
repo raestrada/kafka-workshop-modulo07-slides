@@ -241,6 +241,158 @@
 						</script>
 					</section>
 				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							#### El evento afecta a más de una entidad
+
+							En este caso la recomendación es resistir la tentación de generar un evento pro entidad. 
+							El foco es el evento, no las entidades y la información debe contener todo lo necesario
+							para el evento. El Evento debería tener todo lo soslicitado en el caso de una entidad para todas
+							las entidades.
+
+							> En caso de ser necesario, recordar que kafka es un sistema de Stream en tiempo real. 
+							El evento puede ser dividido en entidades y generar eventos por entidades en tiempo real. Lo importante
+							es que el objetivo de esto es actualizar datos, pero el que necesite el evento, va a tener todos los datos en orden.
+
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Consumidor
+
+							> El consumidor corresponde a una entidad que reacciona a eventos de cierto tipo
+							a medida que suceden en tiempo real (tan pronto como suceden) en una ventana de tiempo
+							acotada.
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							Un concepto clave es la ventana de tiempo en casos reales donde se usan
+							filtros con estado. Los consumidores también pueden reconstruir la historia al punto que deseen, pero no es
+							el comportamiento normal, en estos casos un Data Lake y una solución de analítica como [Dremio](https://www.dremio.com/)
+							es recomendable. 
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							### Consumidor
+
+							Los conceptos importante para un consumidor son:
+
+							- Suscribirse a los tópicos necesarios
+							- Soportar todas las llaves posibles para los tipos de eventos que se escuchan.
+							- Implementar una semántica de entrega (módulo siguiente)
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown data-background-image="https://media.giphy.com/media/3o7qE4opCd6f1NJeuY/giphy.gif">
+						<script type="text/template">
+							# Laboratorio
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							# Descripción
+
+							> Un market-place necesita mejorar su sistema de devoluciones. Hoy en día, las devoluciones
+							ingresan a un sistema y son procesadas por un monolítico y puede tomar varios días o semanas.
+							Se desea que las devoluciones sean inmediatas si el producto no ha sido entregado por el proveedor.
+							Para lograr esto, se debe reacciones en tiempo real con una ventana de n días a los eventos del cliente.
+
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							# Objetivos del Laboratorio
+
+							- Implementar un cluster kafka productivo (se puede usar el ejemplo del módulo anterior)
+							- Construir un productor
+							- Construir un consumidor
+
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							# Descripción Caso de Uso
+
+							Se necesita un servicio que:
+
+							- Ante la solicitud de devolución, se cancele el pago si este no ha sido procesado 
+							por la entidad financiera y el producto no ha sido entregado por el proveedor en bodega
+							- Ante la solicitud de devolución, se genere una nota de crédito si este no ha procesado 
+							por la entidad financiera y el producto no ha sido entregado por el proveedor en bodega
+							- Ante la solicitud de devolución, se notifique al proveedor si acepta la devolución
+							si este ha entregado el producto en bodega
+
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							# Implementación
+
+							Se necesita simular los eventos de los siguientes micro-servicios:
+
+							- Cliente
+							- Proveedor
+							- Payment
+
+							e implementar el micro-servicio "Devoluciones". La salida del micro-servicio devoluciones
+							deben ser eventos (no es necesario implementar los consumidores de estos eventos)
+
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							# Datos falsos:
+
+							Se pueden generar datos falso con [lorem ipsum](https://github.com/mdeanda/lorem). Por ejemplo:
+
+							```java
+							Lorem lorem = LoremIpsum.getInstance();
+							for (int messageCount = 0; messageCount < quantity; messageCount++) {
+							String message = MessageFormat.format(
+								"{0} {1} from country {2}",
+								lorem.getName(),
+								lorem.getLastName(),
+								lorem.getCountry()
+							);
+
+							logger.info(
+								MessageFormat.format(
+								"PRODUCER {0}: message {1} with value '{2}'",
+								messageCount,
+								message
+								)
+							);
+
+							producer.sendMessage(message);
+							```
+
+						</script>
+					</section>
+				</section>
+
 			</div>
 		</div>
 
