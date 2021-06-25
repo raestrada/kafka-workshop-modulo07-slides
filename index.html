@@ -22,13 +22,15 @@
 
 						> Arquitecturas dirigidas a eventos usando Kafka
 
-						#### **MÓDULO 4:** Producer/Consumer (delivery semantics)
+						#### **MÓDULO 5:** Semánticas de entrega
 					</script>
 				</section>
 
 				<section>
-					<section data-markdown data-background-image="https://media.giphy.com/media/I40IC1hhCpVG5OxaHQ/giphy.gif">
+					<section data-markdown data-background-image="https://media.giphy.com/media/r2MkQEOe7niGk/giphy.gif">
 						<script type="text/template">
+						
+						# Garantía de entrega
 							
 						</script>
 					</section>
@@ -37,14 +39,16 @@
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Productor
+						
+						### Garantía de entrega (letra chica)
 
-							> El productor es una aplicación que envía eventos a un broker. Puede ser 
-							la misma aplicación donde ocurre el evento o un itermediario. Por ejemplo, 
-							para sistemas monolítcos y legados, se suele usar Kafka Connect.
+						> Kafka garantiza el orden en una partición, pero el orden lo garantiza según el **offset**,
+						no según la llave como se podría esperar.
+
+						La garantía de entrega es un concepto muy complejo en sistemas distribuidos. Incluso en sistemas,
+						monolíticos como colas tradicionales, se puede garantizar la unicidad y la entrega en el servidor, pero
+						no con el cliente. 
 							
-							Más adelante vamos a ve [Debezium](https://debezium.io/) para transformar BD en sistemas orientados a 
-							Streaming de Eventos
 						</script>
 					</section>
 				</section>
@@ -52,25 +56,13 @@
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Productor
+						
+						### Las fallas ocurren y las operaciones distribuidas no son atómicas
 
-							Es importante garantizar que el productor elija muy bien la llave de cada evento
-							para permitir una distribución aceptable. En el caso de eventos pub/sub puros,
-							existen mejores soluciones que Kafka ([NATS](https://nats.io/), cof, cof, [NATS](https://nats.io/)).
-							Asumiendo el uso para Stream de eventos, recordar que:
+						En kafka interactúan el producer, broker y el consumer. El broker garantiza las operaciones que
+						ocurren en el broker, como la escritura o la lectura, pero no puede garantizar errores que ocurren
+						antes que la solicitud llegué al broker.
 							
-							- El orden se garantiza por partición, es decir, por llave
-							- La unicidad está dada por la llave y es requerida para de-duplicación (salvo que se use Exactly-once)
-							- La idempotencia también depende de la llave.
-
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							> La llave tiene que ser de uso genérico. Siempre considerar que es posible mover
-							los eventos usando diferentes llaves y tópicos para cubrir diferentes agregaciones o
-							agrupaciones y todo esto en tiempo real, esa es una de las gracias de Kafka, **ÚSALO!**
-
 						</script>
 					</section>
 				</section>
@@ -78,15 +70,13 @@
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### ¿Cuántos tópicos y cómo elegirlos?
+							### Caso más simple: Fallas en el consumidor
 
-							> En estricto rigor, un tópico permite a un consumidor especificar un sub-conjunto de
-							mensajes que quiere consumir.
-
-							* Es cierto que se pueden filtrar los mensajes basados en headers, pero mientras más tipos
-							de mensajes en un tópico, más ineficiente es la lectura retro-activa (una de las gracias de Kafka)
-							y más mensajes se necesitan escuchar para recibir los que se necesitan.
-
+							El consumidor sabe exactamente cuáles son los mensajes que ha leído a través del offset.
+							Incluso kafka, almacena en un tópico el último offset leído por grupo de consumidores. 
+	
+							> El problema es que leer es diferente de procesar. Cada Consumidor reacciona a un evento y potencialmente
+							genera un cambio de estado.
 						</script>
 					</section>
 				</section>
@@ -94,14 +84,16 @@
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### ¿Cuántos tópicos y cómo elegirlos?
+						### ¿Como leer eventos?
 
-							> Las particiones son lo que define el desempeño y la utilidad de kafka
+						Básicamente existen 2 alternativas:
 
-							La primera respuesta es tener tantos tópicos para permitir suficientes particiones
-							para trabajar con ellas, pero no tantos para que cada partición contenga 
-							demasiado pocos eventos.
-
+						1. Leer el evento y confirmar como leído y luego generar el cambio de estado
+						2. Leer el evento, generar el cambio de estado y luego confirmar como leído.
+						
+						En el caso 1, el consumidor se puede caer antes de generar el cambio estado y el cambio
+						nunca ocurre. En el caso 2, el consumidor se puede caer antes de confirmar el cambio de estado
+						y el cambio de estado puede ser generado 2 o más veces.
 						</script>
 					</section>
 				</section>
@@ -109,290 +101,81 @@
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							> Una regla heurística para no afectar la latencia, es tener
-							del orden de magnitud de cientos de particiones por broker. En varias
-							implementaciones se ha visto que miles comienza a ser un problema. Decenas,
-							cae dentro del orden don Kafka no es tan útil.
+						### ¿Como leer eventos?
 
-							* ¿Por qué cientos?, ¿Qué sucede si no tengo datos suficientes? -> 
-							Probablemente Kafka sea una solución exagerada :).
+						En general, se prefiere el caso 2, debido a que usualmente es más grave nunca procesar un evento.
+						La primera alternativa es en el consumidor generar una lectura/escritura atómica.
 
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							¿Por qué se asume que siempre vas a querer más particiones?
-
-							- Más particiones aumentan el Throughput
-							
-							... pero requiere más archivos abiertos, latencia en selección de líderes 
-							(problemas de disponibilidad), aumenta la latencia y requiere más memoria en el cliente.
+						> Esto depende de la calidad del código implementado en el servidor.
 						</script>
 					</section>
 					<section data-markdown>
 						<script type="text/template">
-							### No es una BD relacional, Tópico <> Tabla!
-
-							Para dejar claro, el tópico es una agrupación general, lo que define un evento es su llave.
-							
-							> Un error común es obligar a que un tópico agrupe eventos del mismo tipo.
-
-							Para eventos que requieren esquemas como logs de actividades, tiene sentido tener tópicos 
-							específicos, no así para Micro-Servicios.
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							> Por ejemplo, para un micro-servicio (dominio) Cliente. Muchas cosas
-							pueden suceder a un cliente, como ser creado, cambiar de teléfono o dirección,
-							pagar, solicitar soporte, etc. 
-
-							Los eventos de un dominio, pueden ser mucho y no son predecible. Tampoco es predecible 
-							conocer que tipos de eventos va a necesitar otro dominio suscrito a Cliente.
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### ¿Qué sucede con el orden?
-
-							Recordar que el orden está garantizado por partición y por llave. Para garantizar el orden
-							para cierto tipo de evento, se debe diseñar la llave de forma que todos los eventos relacionados
-							de un tipo, siempre estén en la misma partición. Luego, sólo es necesario filtrar.
-
-							> En el caso del cliente, el ID de cliente como llave, es suficiente. 
-							Todos los eventos relacionados con un cliente particular, va a estar en la misma partición.
+						El punto más crítico es donde se confirma el offset. Si se confía en Kafka, tener en cuenta que
+						la mayoría de los clientes no confirmar con zookeeper en forma inmediata para no afectar el desempeño,
+						es decir, existe una ventana de una decena/centena de ms dónde incluso con un código correcto, podrían
+						existir duplicaciones. 
+			
 						</script>
 					</section>
 					<section data-markdown>
 						<script type="text/template">
-							### ¿Qué sucede si uso un tópico por tipo de evento?
-							
-							Si tengo un evento para creación y cambio de dirección, no se garantiza el orden para
-							un cliente particular. Puede ser peor si es para un pago. Agregar un timestamp o un indicador
-							de orden, hace que todos los beneficios de usar Kafka no se aprovechen.
+						> En vez de confiar en Kafka, se puede usar un sistema de estado atómico como Redis o etc,
+						claro que el problema es el mismo. Sólo mejora un poco debido a que estos sistemas son más eficientes
+						para este tipo de acción.
 
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Resumen
-
-							- Todos los eventos que deben seguir un orden según una llave, deben estar
-							en el mismo tópico.
-							- Si 2 entidades tienen una dependencia, deberían estar en el mismo tópico,
-							si no están relacionadas, deberían estar en diferentes.
-
-						</script>
-					</section>
-				</section>
-
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Productor - ¿Qué debería ir en un evento?
-
-							Luego de la llave es importante la decisión de que va en un evento. Tenemos 2 casos principales:
-
-							- El evento afecta a una sóla entidad.
-							- El evento afecta a varias entidades.
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### El evento afecta a una sóla entidad
-
-							En este caso, debe ir:
-
-							- Todo lo necesario para identificar inequívocamente la entidad (idealmente la llave).
-							- Todo los datos relacionados con el cambio de estado (la diferencia entre el estado anterior 
-							y el estado actual).
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Pensando en Event Sourcing
-
-							> No es necesario enviar el estado completo en cada evento. El estado se puede reconstruir
-							a partir de la historia y también se pueden establecer "checkpoints" de estado consolidado
-							cada cierto tiempo o número de mensajes.
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							#### El evento afecta a más de una entidad
-
-							En este caso la recomendación es resistir la tentación de generar un evento pro entidad. 
-							El foco es el evento, no las entidades y la información debe contener todo lo necesario
-							para el evento. El Evento debería tener todo lo soslicitado en el caso de una entidad para todas
-							las entidades.
-
-							> En caso de ser necesario, recordar que kafka es un sistema de Stream en tiempo real. 
-							El evento puede ser dividido en entidades y generar eventos por entidades en tiempo real. Lo importante
-							es que el objetivo de esto es actualizar datos, pero el que necesite el evento, va a tener todos los datos en orden.
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							### Consumidor
-
-							> El consumidor corresponde a una entidad que reacciona a eventos de cierto tipo
-							a medida que suceden en tiempo real (tan pronto como suceden) en una ventana de tiempo
-							acotada.
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							Un concepto clave es la ventana de tiempo en casos reales donde se usan
-							filtros con estado. Los consumidores también pueden reconstruir la historia al punto que deseen, pero no es
-							el comportamiento normal, en estos casos un Data Lake y una solución de analítica como [Dremio](https://www.dremio.com/)
-							es recomendable. 
+						Kafka 3 va a eliminar Zookeeper. Muchos de los problemas de latencia en la sincronización de estado,
+						son causados por Zookeeeper.
+		
 						</script>
 					</section>
 				</section>
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Consumidor
+						### El productor también presenta los mismo problemas
+						
+						El productor también puede fallar en recibir la confirmación del broker y duplicar los eventos.
 
-							Los conceptos importante para un consumidor son:
-
-							- Suscribirse a los tópicos necesarios
-							- Soportar todas las llaves posibles para los tipos de eventos que se escuchan.
-							- Implementar una semántica de entrega (módulo siguiente)
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown data-background-image="https://media.giphy.com/media/3o7qE4opCd6f1NJeuY/giphy.gif">
-						<script type="text/template">
-							# Laboratorio
+						> Incluso aunque el consumidor no falle, aún así podría recibir eventos duplicados y seguir
+						presentando problemas.
+		
 						</script>
 					</section>
 				</section>
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							# Descripción
+						### Es hora de habla de semánticas de entrega
+						
+						Existen 3 forma de entrega:
 
-							> Un market-place necesita mejorar su sistema de devoluciones. Hoy en día, las devoluciones
-							ingresan a un sistema y son procesadas por un monolítico y puede tomar varios días o semanas.
-							Se desea que las devoluciones sean inmediatas si el producto no ha sido entregado por el proveedor.
-							Para lograr esto, se debe reacciones en tiempo real con una ventana de n días a los eventos del cliente.
+						- At least once
+						- At most once
+						- Exactly once
 
+						#### **Material basado en este [post](https://medium.com/@sdjemails/kafka-producer-delivery-semantics-be863c727d3f)**
 						</script>
 					</section>
 				</section>
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							# Objetivos del Laboratorio
+						### At Most once
+						
+						> Cada evento es recibido a lo más una vez y puede no ser recibido nunca. Es aceptable
+						perder algunos eventos sobre procesar un evento 2 veces.
 
-							- Implementar un cluster kafka productivo (se puede usar el ejemplo del módulo anterior)
-							- Construir un productor
-							- Construir un consumidor
-
+						Caso de uso son por ejemplo, recolección de métricas. At most Once no es uno de los mejores casos
+						de uso de Kafka, aunque si es cierto que con esta semántica se puede alcanzar un throughput impresionante.
 						</script>
 					</section>
-				</section>
-				<section>
-					<section data-markdown>
+					<section data-markdown data-background-color="aquamarine">
 						<script type="text/template">
-							# Descripción Caso de Uso
-
-							Se necesita un servicio que:
-
-							- Ante la solicitud de devolución, se cancele el pago si este no ha sido procesado 
-							por la entidad financiera y el producto no ha sido entregado por el proveedor en bodega
-							- Ante la solicitud de devolución, se genere una nota de crédito si este no ha procesado 
-							por la entidad financiera y el producto no ha sido entregado por el proveedor en bodega
-							- Ante la solicitud de devolución, se notifique al proveedor si acepta la devolución
-							si este ha entregado el producto en bodega
-
+						![at-most-once](imgs/at-most-once.png)
 						</script>
 					</section>
 				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							# Implementación
-
-							Se necesita simular los eventos de los siguientes micro-servicios:
-
-							- Cliente
-							- Proveedor
-							- Payment
-
-							e implementar el micro-servicio "Devoluciones". La salida del micro-servicio devoluciones
-							deben ser eventos (no es necesario implementar los consumidores de estos eventos)
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-							# Datos falsos:
-
-							Se pueden generar datos falso con [lorem ipsum](https://github.com/mdeanda/lorem). Por ejemplo:
-
-							```java
-							Lorem lorem = LoremIpsum.getInstance();
-							for (int messageCount = 0; messageCount < quantity; messageCount++) {
-							String message = MessageFormat.format(
-								"{0} {1} from country {2}",
-								lorem.getName(),
-								lorem.getLastName(),
-								lorem.getCountry()
-							);
-
-							logger.info(
-								MessageFormat.format(
-								"PRODUCER {0}: message {1} with value '{2}'",
-								messageCount,
-								message
-								)
-							);
-
-							producer.sendMessage(message);
-							```
-
-						</script>
-					</section>
-				</section>
-
 			</div>
 		</div>
 
