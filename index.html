@@ -163,7 +163,7 @@
 						<script type="text/template">
 						### At Most once
 						
-						> Cada evento es recibido a lo más una vez y puede no ser recibido nunca. Es aceptable
+						> Cada evento es entregado a lo más una vez y puede no ser recibido nunca. Es aceptable
 						perder algunos eventos sobre procesar un evento 2 veces.
 
 						Caso de uso son por ejemplo, recolección de métricas. At most Once no es uno de los mejores casos
@@ -173,6 +173,156 @@
 					<section data-markdown data-background-color="aquamarine">
 						<script type="text/template">
 						![at-most-once](imgs/at-most-once.png)
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### At Least Once
+						
+						> Cada evento es entregado al menos una vez. No se acepta la pérdida de un evento. Los eventos
+						pueden ser duplicados.
+
+						At least once es suficiente para la mayoría de los casos usando técnicas como de-duplicación o idempotencia.
+						</script>
+					</section>
+					<section data-markdown data-background-color="aquamarine">
+						<script type="text/template">
+						![at-least-once](imgs/at-least-once.png)
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Exactly Once
+						
+						> Cada evento es entregado exactamente una vez. No se acepta perder eventos ni tampoco
+						duplicarlos.
+
+						Lo que todos quieren, pero muy difícil de lograr en sistemas distribuidos,
+						salvo que todo se procese en la misma plataforma.
+						</script>
+					</section>
+					<section data-markdown data-background-color="aquamarine">
+						<script type="text/template">
+						![exactly-once](imgs/exactly-once.png)
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### ACKs, desde el punto de vista del broker
+
+						Desde el punto de vista del broker, sin considerar las fallas externas y
+						la llave (recordar que sólo se ve el offset), el delivery semantic está dado por el ack:
+
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### ACK = 0
+						
+						> El productor envía el evento al broker y no espera confirmación.
+						En este caso no existen re-intentos
+						</script>
+					</section>
+					<section data-markdown data-background-color="aquamarine">
+						<script type="text/template">
+						![ack0](imgs/ack0.png)
+						</script>
+					</section>
+					<section data-markdown data-background-color="aquamarine">
+						<script type="text/template">
+						![ack0](imgs/ack0fail.png)
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### ACK = 1
+						
+						> El productor envía el evento al broker y espera una respuesta. Si no recibe respuesta,
+						re-envía hasta recibirla.
+
+						Que el productor no reciba respuesta, no significa que el mensaje no haya sido entregado.
+						Esta es la razón del riesgo de duplicación.
+
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+						### ACK = 1
+						
+						> Aún se pueden perder datos. Si el líder confirma la recepción y el broker se cae antes de
+						la confirmación de los followers.
+
+						</script>
+					</section>
+					<section data-markdown data-background-color="aquamarine">
+						<script type="text/template">
+						![ack0](imgs/ack1.png)
+						</script>
+					</section>
+					<section data-markdown data-background-color="aquamarine">
+						<script type="text/template">
+						![ack0](imgs/ack1fail.png)
+						</script>
+					</section>
+					<section data-markdown data-background-color="aquamarine">
+						<script type="text/template">
+						![ack0](imgs/ack1loss.png)
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### ACK = all
+						
+						> El productor envía el evento al broker y espera una respuesta. Si no recibe respuesta,
+						re-envía hasta recibirla. La diferencia con ACK=1 es que la confirmación es enviada sólo
+						cuando el líder recibe confirmación de followers igual a min.insync.replica
+
+						Sigue siendo at-least-once, salvo que se configure "idempotencia" (lo veremos más adelante)
+
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+						### ACK = All
+						
+						> Aún se pueden perder datos. La replicación del follower sucede después de su confirmación.
+						Si el broker se cae en ese instante, se pueden perder datos. 
+						La probabilidad es mínima, pero existe.
+						</script>
+					</section>
+					<section data-markdown data-background-color="aquamarine">
+						<script type="text/template">
+						![ack0](imgs/ackall.png)
+						</script>
+					</section>
+					<section data-markdown data-background-color="aquamarine">
+						<script type="text/template">
+						![ack0](imgs/ackallloss.png)
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						> Se puede ver que incluso ACK=All no evita la pérdida de datos. Más adelante vamos
+						a ver que tampoco la idempotencia garantiza exactly once. 
+
+						Esto no es un problema de kafka, de hecho, kafka lo hace muy bien. Es un problema intrinsico
+						de los sistemas distribuidos.
 						</script>
 					</section>
 				</section>
