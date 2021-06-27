@@ -334,6 +334,142 @@
 						</script>
 					</section>
 				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Minimizar la pérdida de datos:
+
+						- Productor: 
+							* Acks = All
+							* Retries = MAX_INT
+							* Max.in.flight.requests.per.connection = 5
+						- Broker:
+							* Min.insync.replicas = 2 (al menos)
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Minimizar la pérdida de datos:
+
+						- Productor: 
+							* Acks = All
+							* Retries = MAX_INT
+							* Max.in.flight.requests.per.connection = 5
+						- Broker:
+							* Min.insync.replicas = 2 (al menos)
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown data-background-image="https://media.giphy.com/media/CANQcbL6B28pi/giphy.gif">
+						<script type="text/template">
+						
+						# Programar para el error
+							
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### **Asumiendo que la probabilidad de falla es razonablemente baja**!
+
+						> Lo mejor en sistemas distribuidos es programar para el error. En este caso,
+						asumir que los mensajes pueden ser repetidos y tratar de reducir la probabilidad
+						que un mensaje no sea entregado.
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Técnica pragmática: idempotencia
+
+						La más recomendada siempre que sea posible. La idempotencia significa que una misma
+						operación repetida más de una vez, siempre resulta en el mismo estado final.
+
+						> Matemáticamente, una operación aplicada múltiples veces no cambia el resultado
+						obtenido al aplicarla una vez.
+						
+						* Esto desde el punto de vista dle consumidor, no es lo mismo que "idempotent producer"
+
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+						### Ejemplos:
+
+						- Upsert
+						- Crear si existe
+
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Técnica realista: De-duplicación
+
+						La de-duplicación es la capacidad del consumidor de identificar de forma inequívoca
+						un evento. Cuando esto ocurre, el consumidor puede registrar los eventos procesados
+						y evitar la duplicación.  
+
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Llaves para De-duplicación
+
+						El offset parece un candidato perfecto, pero recordar que kafka no garantiza que un mismo
+						evento tenga el mismo offset. Se debe usar una llave única generada por el productor, por ejemplo
+						el RUT.
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Productor Idempotente
+
+						Cuando el productor es capaz de ofrecer una llave para de-duplicación, Kafka ofrece
+						la opción de configurar idempotencia en el productor.
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Productor Idempotente
+
+						Cuando en el productor se activa la idempotencia, el broker no va a repetir un evento cuya
+						llave ya fue confirmada dentro del broker de la partición.
+
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						> Con todo activado, se puede lograr Exactly Once y garantía de orden para una partición.
+
+						Notar que "lograr Exactly Once" significa que la probabilidad de que se duplique un evento
+						es extremadamente baja. Para sistemas críticos (vidas humanas), puede que un sistema distribuido
+						no sea la mejor elección. En case de usarse, incluso con todo activado, se debe programar para el
+						error e incluso hacer validaciones como 2 phase commit o usar redundancia.
+
+						</script>
+					</section>
+				</section>
 			</div>
 		</div>
 
