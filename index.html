@@ -22,15 +22,23 @@
 
 						> Arquitecturas dirigidas a eventos usando Kafka
 
-						#### **MÓDULO 5:** Semánticas de entrega
+						#### **MÓDULO 6:** EDA y Kafka (orientado a MS)
 					</script>
 				</section>
 
 				<section>
-					<section data-markdown data-background-image="https://media.giphy.com/media/r2MkQEOe7niGk/giphy.gif">
+					<section data-markdown data-background-size="contain" data-background-image="https://media.giphy.com/media/3o6ZtirIotBE5zqDtu/giphy.gif">
+						<script type="text/template">	
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
 						<script type="text/template">
 						
-						# Garantía de entrega
+						> Kafka implementa literalmente los conceptos de un EDA. Diferenciemos otros conceptos de alto
+						nivel que podrían ser implementados con Kafka, pero no es un EDA.
 							
 						</script>
 					</section>
@@ -39,15 +47,60 @@
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-						
-						### Garantía de entrega (letra chica)
+						### Event Sourcing
 
-						> Kafka garantiza el orden en una partición, pero el orden lo garantiza según el **offset**,
-						no según la llave como se podría esperar.
+						Event Sourcing hace referencia a sistemas donde el estado de la aplicación completa es
+						almacenado como una secuencia de eventos. Aquí, el termino evento se refiere al
+						“cambio de estado”, no es solamente una “notificación”.
+						</script>
+					</section>
 
-						La garantía de entrega es un concepto muy complejo en sistemas distribuidos. Incluso en sistemas,
-						monolíticos como colas tradicionales, se puede garantizar la unicidad y la entrega en el servidor, pero
-						no con el cliente. 
+					<section data-markdown>
+						<script type="text/template">
+						Event-sourcing es un concepto de más alto nivel y más especializado que EDA y Kafka. Ha
+						tenido furor con los DDD, pero existe como concepto desde hace tiempo, por ejemplo, en los
+						Data Warehouse. 
+
+						> Sus usos pueden ser: estado de la aplicación, revertir eventos, actualizaciones/consultas/interacciones
+						externas, control de cambios
+
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+						El componente principal de event sourcing es el event-store. Kafka puede ser usado como un
+						event-store. En general, como hemos visto, los streams de EDA resuelve varios de los casos de
+						uso del event sourcing a través de las particiones. Más adelante vamos a ver las transacciones
+						que lo complementan aún  más.
+
+						> En EDA el event-sourcing está en el contexto de una aplicación o micro-servicio. Usar Kafka sólo
+						para implementar en ese contexto, no tiene mucho sentido. [Apache bookkeeper](https://bookkeeper.apache.org/) es una mejor solución
+						para un event-store 
+
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### CQRS
+
+						Command Query Responsability Segregation (CQRS) es un patrón por el cual se tienen estructuras
+						de datos separadas para leer y escribir información. CQRS no tiene que ver estrictamente con eventos,
+						ya que se puede implementar sin hacer uso de ellos, pero es bastante común que se combine CQRS con
+						Event Sourcing.
+							
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+						> CQRS no es "event-first" y es un anti-patrón en una arquitectura EDA.
+
+						CQRS puede ser implementado con Kafka si se usan event-commands y Kafka como
+						event store. En mi opinión, esto viola el principio EDA y el uso pensado para KAfka.
 							
 						</script>
 					</section>
@@ -56,13 +109,11 @@
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-						
-						### Las fallas ocurren y las operaciones distribuidas no son atómicas
+						### EDA Y Kafka son "Event-First"
 
-						En kafka interactúan el producer, broker y el consumer. El broker garantiza las operaciones que
-						ocurren en el broker, como la escritura o la lectura, pero no puede garantizar errores que ocurren
-						antes que la solicitud llegué al broker.
-							
+						> Un elemento clave de la notificación de eventos es que al sistema de origen no le importa mucho
+						la respuesta. A menudo no espera ninguna respuesta, o si hay una respuesta que le importa a la 
+						fuente, es indirecta. - _Martin Faowler_
 						</script>
 					</section>
 				</section>
@@ -70,406 +121,15 @@
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-							### Caso más simple: Fallas en el consumidor
+						- **Event-First:** Entro en una habitación, genero un evento de "habitación entrada" y la 
+						luz se enciende. Esta es una reacción a un evento.
 
-							El consumidor sabe exactamente cuáles son los mensajes que ha leído a través del offset.
-							Incluso kafka, almacena en un tópico el último offset leído por grupo de consumidores. 
-	
-							> El problema es que leer es diferente de procesar. Cada Consumidor reacciona a un evento y potencialmente
-							genera un cambio de estado.
+						- **Event-Command:** Entro en una habitación, enciendo el interruptor de la luz y la luz se enciende.
+						Este es un comando.
 						</script>
 					</section>
 				</section>
 
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### ¿Como leer eventos?
-
-						Básicamente existen 2 alternativas:
-
-						1. Leer el evento y confirmar como leído y luego generar el cambio de estado
-						2. Leer el evento, generar el cambio de estado y luego confirmar como leído.
-						
-						En el caso 1, el consumidor se puede caer antes de generar el cambio estado y el cambio
-						nunca ocurre. En el caso 2, el consumidor se puede caer antes de confirmar el cambio de estado
-						y el cambio de estado puede ser generado 2 o más veces.
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### ¿Como leer eventos?
-
-						En general, se prefiere el caso 2, debido a que usualmente es más grave nunca procesar un evento.
-						La primera alternativa es en el consumidor generar una lectura/escritura atómica.
-
-						> Esto depende de la calidad del código implementado en el servidor.
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-						El punto más crítico es donde se confirma el offset. Si se confía en Kafka, tener en cuenta que
-						la mayoría de los clientes no confirmar con zookeeper en forma inmediata para no afectar el desempeño,
-						es decir, existe una ventana de una decena/centena de ms dónde incluso con un código correcto, podrían
-						existir duplicaciones. 
-			
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-						> En vez de confiar en Kafka, se puede usar un sistema de estado atómico como Redis o etc,
-						claro que el problema es el mismo. Sólo mejora un poco debido a que estos sistemas son más eficientes
-						para este tipo de acción.
-
-						Kafka 3 va a eliminar Zookeeper. Muchos de los problemas de latencia en la sincronización de estado,
-						son causados por Zookeeeper.
-		
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### El productor también presenta los mismo problemas
-						
-						El productor también puede fallar en recibir la confirmación del broker y duplicar los eventos.
-
-						> Incluso aunque el consumidor no falle, aún así podría recibir eventos duplicados y seguir
-						presentando problemas.
-		
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Es hora de habla de semánticas de entrega
-						
-						Existen 3 forma de entrega:
-
-						- At least once
-						- At most once
-						- Exactly once
-
-						#### **Material basado en este [post](https://medium.com/@sdjemails/kafka-producer-delivery-semantics-be863c727d3f)**
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### At Most once
-						
-						> Cada evento es entregado a lo más una vez y puede no ser recibido nunca. Es aceptable
-						perder algunos eventos sobre procesar un evento 2 veces.
-
-						Caso de uso son por ejemplo, recolección de métricas. At most Once no es uno de los mejores casos
-						de uso de Kafka, aunque si es cierto que con esta semántica se puede alcanzar un throughput impresionante.
-						</script>
-					</section>
-					<section data-markdown data-background-color="aquamarine">
-						<script type="text/template">
-						![at-most-once](imgs/at-most-once.png)
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### At Least Once
-						
-						> Cada evento es entregado al menos una vez. No se acepta la pérdida de un evento. Los eventos
-						pueden ser duplicados.
-
-						At least once es suficiente para la mayoría de los casos usando técnicas como de-duplicación o idempotencia.
-						</script>
-					</section>
-					<section data-markdown data-background-color="aquamarine">
-						<script type="text/template">
-						![at-least-once](imgs/at-least-once.png)
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Exactly Once
-						
-						> Cada evento es entregado exactamente una vez. No se acepta perder eventos ni tampoco
-						duplicarlos.
-
-						Lo que todos quieren, pero muy difícil de lograr en sistemas distribuidos,
-						salvo que todo se procese en la misma plataforma.
-						</script>
-					</section>
-					<section data-markdown data-background-color="aquamarine">
-						<script type="text/template">
-						![exactly-once](imgs/exactly-once.png)
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### ACKs, desde el punto de vista del broker
-
-						Desde el punto de vista del broker, sin considerar las fallas externas y
-						la llave (recordar que sólo se ve el offset), el delivery semantic está dado por el ack:
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### ACK = 0
-						
-						> El productor envía el evento al broker y no espera confirmación.
-						En este caso no existen re-intentos
-						</script>
-					</section>
-					<section data-markdown data-background-color="aquamarine">
-						<script type="text/template">
-						![ack0](imgs/ack0.png)
-						</script>
-					</section>
-					<section data-markdown data-background-color="aquamarine">
-						<script type="text/template">
-						![ack0](imgs/ack0fail.png)
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### ACK = 1
-						
-						> El productor envía el evento al broker y espera una respuesta. Si no recibe respuesta,
-						re-envía hasta recibirla.
-
-						Que el productor no reciba respuesta, no significa que el mensaje no haya sido entregado.
-						Esta es la razón del riesgo de duplicación.
-
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-						### ACK = 1
-						
-						> Aún se pueden perder datos. Si el líder confirma la recepción y el broker se cae antes de
-						la confirmación de los followers.
-
-						</script>
-					</section>
-					<section data-markdown data-background-color="aquamarine">
-						<script type="text/template">
-						![ack0](imgs/ack1.png)
-						</script>
-					</section>
-					<section data-markdown data-background-color="aquamarine">
-						<script type="text/template">
-						![ack0](imgs/ack1fail.png)
-						</script>
-					</section>
-					<section data-markdown data-background-color="aquamarine">
-						<script type="text/template">
-						![ack0](imgs/ack1loss.png)
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### ACK = all
-						
-						> El productor envía el evento al broker y espera una respuesta. Si no recibe respuesta,
-						re-envía hasta recibirla. La diferencia con ACK=1 es que la confirmación es enviada sólo
-						cuando el líder recibe confirmación de followers igual a min.insync.replica
-
-						Sigue siendo at-least-once, salvo que se configure "idempotencia" (lo veremos más adelante)
-
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-						### ACK = All
-						
-						> Aún se pueden perder datos. La replicación del follower sucede después de su confirmación.
-						Si el broker se cae en ese instante, se pueden perder datos. 
-						La probabilidad es mínima, pero existe.
-						</script>
-					</section>
-					<section data-markdown data-background-color="aquamarine">
-						<script type="text/template">
-						![ack0](imgs/ackall.png)
-						</script>
-					</section>
-					<section data-markdown data-background-color="aquamarine">
-						<script type="text/template">
-						![ack0](imgs/ackallloss.png)
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown data-background-image="https://media.giphy.com/media/UtM8DmnahknE4/giphy.gif">
-						<script type="text/template">
-					
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						> Se puede ver que incluso ACK=All no evita la pérdida de datos. Más adelante vamos
-						a ver que tampoco la idempotencia garantiza exactly once. 
-
-						Esto no es un problema de kafka, de hecho, kafka lo hace muy bien. Es un problema intrinsico
-						de los sistemas distribuidos.
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Minimizar la pérdida de datos:
-
-						- Productor: 
-							* Acks = All
-							* Retries = MAX_INT
-							* Max.in.flight.requests.per.connection = 5
-						- Broker:
-							* Min.insync.replicas = 2 (al menos)
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Minimizar la pérdida de datos:
-
-						- Productor: 
-							* Acks = All
-							* Retries = MAX_INT
-							* Max.in.flight.requests.per.connection = 5
-						- Broker:
-							* Min.insync.replicas = 2 (al menos)
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown data-background-image="https://media.giphy.com/media/CANQcbL6B28pi/giphy.gif">
-						<script type="text/template">
-						
-						# Programar para el error
-							
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### **Asumiendo que la probabilidad de falla es razonablemente baja**!
-
-						> Lo mejor en sistemas distribuidos es programar para el error. En este caso,
-						asumir que los mensajes pueden ser repetidos y tratar de reducir la probabilidad
-						que un mensaje no sea entregado.
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Técnica pragmática: idempotencia
-
-						La más recomendada siempre que sea posible. La idempotencia significa que una misma
-						operación repetida más de una vez, siempre resulta en el mismo estado final.
-
-						> Matemáticamente, una operación aplicada múltiples veces no cambia el resultado
-						obtenido al aplicarla una vez.
-						
-						* Esto desde el punto de vista dle consumidor, no es lo mismo que "idempotent producer"
-
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-						### Ejemplos:
-
-						- Upsert
-						- Crear si existe
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Técnica realista: De-duplicación
-
-						La de-duplicación es la capacidad del consumidor de identificar de forma inequívoca
-						un evento. Cuando esto ocurre, el consumidor puede registrar los eventos procesados
-						y evitar la duplicación.  
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Llaves para De-duplicación
-
-						El offset parece un candidato perfecto, pero recordar que kafka no garantiza que un mismo
-						evento tenga el mismo offset. Se debe usar una llave única generada por el productor, por ejemplo
-						el RUT.
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Productor Idempotente
-
-						Cuando el productor es capaz de ofrecer una llave para de-duplicación, Kafka ofrece
-						la opción de configurar idempotencia en el productor.
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Productor Idempotente
-
-						Cuando en el productor se activa la idempotencia, el broker no va a repetir un evento cuya
-						llave ya fue confirmada dentro del broker de la partición.
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						> Con todo activado, se puede lograr Exactly Once y garantía de orden para una partición.
-
-						Notar que "lograr Exactly Once" significa que la probabilidad de que se duplique un evento
-						es extremadamente baja. Para sistemas críticos (vidas humanas), puede que un sistema distribuido
-						no sea la mejor elección. En case de usarse, incluso con todo activado, se debe programar para el
-						error e incluso hacer validaciones como 2 phase commit o usar redundancia.
-
-						</script>
-					</section>
-				</section>
 			</div>
 		</div>
 
