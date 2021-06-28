@@ -130,6 +130,196 @@
 					</section>
 				</section>
 
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### DDD
+
+						Una forma de trabajar con micro-servicios y equipo es diseñar orientado a los dominios de negocios
+
+						> El concepto más importante el el lenguaje común o lenguaje ubicuo, se debe usar el mismo lenguaje
+						en todo el producto, des el usuario final hasta el código y las bases de datos.
+
+						* Notar que el lenguaje es ubicuo dentro del mismo dominio, esto tiene un impacto importante
+						en la ventaja del uso de EDA y Kafka para micro-servicios.
+
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						Un Micro-Servicio implemente un bounded-context dentro de un sub-dominio. Los micro-servicios
+						son diseñados a través de "capacidades de negocio".
+
+						![ddd_process](imgs/ddd-process.png)
+
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+						### Bounded context
+
+						El concepto de contexto acotado se originó en los círculos de diseño impulsado por dominio (DDD).
+						Promueve un enfoque de modelo de objeto en primer lugar para un servicio,
+						definiendo un modelo de datos del que un servicio es responsable y al que está "vinculado".
+						En otras palabras, el servicio es propietario de estos datos y es responsable de su integridad y
+						mutabilidad.
+
+						> Ojo, el servicio está a cargo de su MUTABILIDAD
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+						![ddd-domain-examples](imgs/ddd-domain-examples.svg)	
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+						![ddd-bounded-context](imgs/ddd-bounded-context.svg)	
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						El/Los micro-servicio/s asociados a un bounded context son los únicos responsables
+						de su mutabilidad.
+
+						Acá comienzan los problemas:
+
+						- ¿Qué sucede si otro MS de otro bounded context necesita cambiar/leer datos?
+
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Se complica un poco más
+
+						En DDD y MS, es buena práctica persistir sólo los datos que son necesarios y dado
+						que es obligatorio respetar el lenguaje ubicuo, es factible y deseable que una misma
+						entidad tenga diferentes nombre y diferentes atributos dependiendo de su dominio.
+
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+						### Ejemplo
+
+						En un sistema de reclutamiento, la misma persona es llamada candidato en el dominio
+						de reclutamiento y luego es llamado colaborador en el dominio de gestión de personal.
+						Ambos tienen como atributo el rut y el CV, pero el colaborador tiene como atributo un
+						contrato, el cuál no existe en el candidatos. Además, algunos atributos son diferentes.
+						Como candidato usa su mail personal, pero como colaborador, su mail corporativo.
+
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### La primera solución: RPC (REST, gRPC, SOAP, etc)
+
+						La solución más común es exponer endpoints en cada MS para permitir mutaciones y lecturas
+						desde otros sistemas.
+
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### La primera solución: RPC (REST, gRPC, SOAP, etc)
+
+						Esto trae varios problemas:
+
+						- No se puede predecir con cuantos servicios necesitas comunicarse
+						- Se generan alto acoplamiento
+						- ¿Qué sucede si un servicio no está disponible?
+						- ¿Qué sucede con las transacciones que involucran más de un MS en el mismo dominio?
+						- No se puede predecir que información puede ser necesitada en el futuro en forma retroactiva.
+
+						</script>
+					</section>
+					<section>
+						<img src="imgs/microservice-rest.png"  height="600" width="600">
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Segunda solución: Usar asincronismo (Pub/Sub)
+
+						Mejor, pero todavía existen problemas:
+
+						- ¿Qué sucede si un servicio no está disponible?
+						- ¿Qué sucede con las transacciones que involucran más de un MS en el mismo dominio?
+						- No se puede predecir que información puede ser necesitada en el futuro en forma retroactiva
+
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							![microservice-pubsub](imgs/microservice-pubsub.png)	
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Solución EDA/Kafka
+
+						Para usar EDA y Kafka para comunicación entre micro-servicios, ampliemos la definición<nav>
+						de eventos:
+
+						> "Evento de Dominio es un hecho que cambia el estado de una o más entidades
+						en forma permanente e inmutable y cambio nuestra percepción del dominio
+						dentro del bounded context"
+
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Solución EDA/Kafka
+
+						Tomada esta definición, podemos usar EDa y Kafka y podemos resolver la mayoría de los inconvenientes.
+						Se debe tener en consideración:
+
+
+						- El orden se garantiza por partición:
+							* Todos los eventos relacionados deben tener una llave en común
+							* Todas los eventos de entidades relacionadas deben ir en el mismo tópico
+
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+						### Solución EDA/Kafka
+						
+						> No es mala práctica crear un tópico por bounded context. Si las entidades son muchas,
+						se debería revisar la definición de los bounded context en vez de separar entidades.
+
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							![microservice-kafka](imgs/microservice-kafka.png)	
+						</script>
+					</section>
+				</section>
+
 			</div>
 		</div>
 
