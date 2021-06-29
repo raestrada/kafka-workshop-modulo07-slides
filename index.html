@@ -406,6 +406,30 @@
 				<section>
 					<section data-markdown>
 						<script type="text/template">
+						### Diferencias entre 2 Phase Commit y SAGA
+
+						2PC trata todo como una sólo transacción ACID, es decir, todas la entidades
+						de la transacción siempre están en un estado consistente. SAGA apuesta a las compensaciones
+						y a la consistencia eventual. **2PC es un único punto de falla**.
+
+						> Leer teorema de [CAP](https://towardsdatascience.com/cap-theorem-and-distributed-database-management-systems-5c2be977950e)
+
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+						### Kafka es CA (no es tolerante a particiones)
+
+						Pero el elemento principal de Kafka son las particiones!.
+
+						> Cómo se ha explicado, la probabilidad existe, pero es muy baja: [aquí se explica muy bien](https://aphyr.com/posts/293-jepsen-kafka).
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
 						### Patrón SAGA Coreografía
 
 						Cuando se usa coreografía, cada servicio es responsable de escuchar los eventos y reaccionar
