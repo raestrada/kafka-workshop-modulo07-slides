@@ -307,7 +307,7 @@
 					<section data-markdown>
 						<script type="text/template">
 						### Solución EDA/Kafka
-						
+
 						> No es mala práctica crear un tópico por bounded context. Si las entidades son muchas,
 						se debería revisar la definición de los bounded context en vez de separar entidades.
 
@@ -320,6 +320,189 @@
 					</section>
 				</section>
 
+				<section>
+					<section data-markdown data-background-size="contain" data-background-image="imgs/saga.jpeg">
+						<script type="text/template">
+							# Patrón SAGA
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Transacciones que involucran entidades en diferentes micro-servicios
+
+						Idealmente cada micro-servicio tiene su propia persistencia y está obligado
+						a ser el único responsable de sus mutaciones.
+
+						¿Qué sucede si una mutación requiere cambios en el estado de 
+						varias entidades relacionadas por una llave?
+
+						Esto es una transacción, por ejemplo, se genera una orden, se reserva el stock, se realiza el pago.
+						Si el pago falla, se debe cancelar la transacción completa.
+						
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Transacciones que involucran entidades en diferentes micro-servicios
+
+						Es aún más complicado. El orden puede ser importante. Por ejemplo:
+						
+						- La reserva de stock y el pago se realizan en paralelo:
+							* Si el pago falla, el stock deber ser liberado
+							* Si el pago es exitoso y luego falla la liberación de stock, el pago debe ser
+							cancelado y además, el stock debe revisar el estado del pago.
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+						### Transacciones que involucran entidades en diferentes micro-servicios
+
+						- Agréguemos la opción que se pueda cancelar la compra en forma inmediata si no se ha retirado
+						el producto del proveedor
+						- Empeoremoslo, cobremos de la tarjeta de crédito a medida que los productos son embalados y enviados. 
+						
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+						### Concepto tradicional de transacciones
+
+						Hemos estado limitados a un concepto de transacciones donde está son ejecutadas en un orden
+						pre-establecido.
+						</script>
+					</section>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+					### Patrón SAGA
+
+					> Un patrón de saga es una secuencia de transacciones locales donde cada transacción actualiza 
+					datos dentro de un solo servicio. La primera transacción en una saga se inicia mediante una 
+					solicitud externa correspondiente a la operación del sistema, y luego cada paso posterior se 
+					activa al completar el anterior.
+					</script>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+					### Patrón SAGA
+
+					El patrón SAGA soluciona el problema de las transacciones distribuidas a través de 2
+					modelos:
+
+					- Coreografía
+					- Orquestación
+
+					</script>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Patrón SAGA Coreografía
+
+						Cuando se usa coreografía, cada servicio es responsable de escuchar los eventos y reaccionar
+						compensando en sus datos
+					
+						> Esto genere un problema. La reacción genera otro evento que podría provocar efectos
+						colaterales en la transacción o incluso generar un loop infinito.
+
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							![saga-cor](imgs/saga-cor.png)	
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Patrón SAGA Coreografía
+
+						Kafka y EDA funcionan muy bien con este patrón. Cada servicio es responsable de reaccionar
+						a los distintos eventos y compensar dentro del contexto de la transacción a través
+						de la llave del evento.
+
+						> Notar la importancia de que la llave agrupe todos los eventos relacionados. Sin esto,
+						no se puede aplicar el patrón.
+
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Patrón SAGA Orquestación
+
+						Cuando se usa coreografía, un servicio se encarga de coordinar las compensaciones
+						entre los servicios afectados.
+					
+						> En EDA, por defecto no es útil, siendo estricto, el orquestador debe generar un evento
+						para compensar y de todas formas cada servicio es responsable de escucharlo.Es útil  cuando 
+						la reacción genera otro evento que podría provocar efectos colaterales en la transacción o incluso generar un loop infinito.
+
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							![saga-orch](imgs/saga-orch.png)	
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### SAGA y EDA
+
+						SAGA con coreografía es natural en EDA y Kafka, tanto, que ni siquiera vale la pena
+						mencionarlo como patrón independiente. 
+
+						> Adicionalmente, el orden garantizado por partición permite solucionar problemas complejos
+						cuando las entidades afectadas están en el mismo tópico :).
+
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### SAGA, EDA y transacciones múltiple particiones/tópicos
+
+						No todo es miel sobre hojuelas. Kafka configurado con exactly-once y una buena elección
+						de tópicos y llaves, puede solucionar la mayoría de los problemas de transacciones.
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						¿Qué sucede si los eventos de una transacción no están en la misma partición?
+						
+						Eso se puede deber a llaves distintas o el uso de más de un tópico en la transacción.
+
+						> **Primera solución:** SAGA orquestación
+
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+						### Segunda solución: Transacciones de Kafka
+
+						Si todos os cambios de estado y el resultado de la transacción se persisten en kafka,
+						se pueden usar las transacciones de Kafka.
+						</script>
+					</section>
+				</section>
 			</div>
 		</div>
 
