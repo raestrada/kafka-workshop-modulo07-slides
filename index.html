@@ -22,12 +22,12 @@
 
 						> Arquitecturas dirigidas a eventos usando Kafka
 
-						#### **MÓDULO 6:** EDA y Kafka (orientado a MS)
+						#### **MÓDULO 7:** Avro, Schema Registry, Streaming y Batch
 					</script>
 				</section>
 
 				<section>
-					<section data-markdown data-background-size="contain" data-background-image="https://media.giphy.com/media/3o6ZtirIotBE5zqDtu/giphy.gif">
+					<section data-markdown data-background-size="contain" data-background-image="imgs/avro.jpg">
 						<script type="text/template">	
 						</script>
 					</section>
@@ -37,8 +37,7 @@
 					<section data-markdown>
 						<script type="text/template">
 						
-						> Kafka implementa literalmente los conceptos de un EDA. Diferenciemos otros conceptos de alto
-						nivel que podrían ser implementados con Kafka, pero no es un EDA.
+						¿Por qué AVRO usa el nombre y logo de una compañia de aviones que ya no existe?
 							
 						</script>
 					</section>
@@ -47,37 +46,18 @@
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-						### Event Sourcing
-
-						Event Sourcing hace referencia a sistemas donde el estado de la aplicación completa es
-						almacenado como una secuencia de eventos. Aquí, el termino evento se refiere al
-						“cambio de estado”, no es solamente una “notificación”.
+						
+						Kafka transmite eventos formados por una llave y un valor. El valor es sólo un conjunto
+						de Bytes, Kafka no lo interpreta y por lo tanto, tampoco lo valida. Es responsabilidad
+						del productor y el consumidor validar los datos.
+							
 						</script>
 					</section>
-
 					<section data-markdown>
 						<script type="text/template">
-						Event-sourcing es un concepto de más alto nivel y más especializado que EDA y Kafka. Ha
-						tenido furor con los DDD, pero existe como concepto desde hace tiempo, por ejemplo, en los
-						Data Warehouse. 
+						![kafka-data](imgs/kafka-data.png)
 
-						> Sus usos pueden ser: estado de la aplicación, revertir eventos, actualizaciones/consultas/interacciones
-						externas, control de cambios
-
-						</script>
-					</section>
-
-					<section data-markdown>
-						<script type="text/template">
-						El componente principal de event sourcing es el event-store. Kafka puede ser usado como un
-						event-store. En general, como hemos visto, los streams de EDA resuelve varios de los casos de
-						uso del event sourcing a través de las particiones. Más adelante vamos a ver las transacciones
-						que lo complementan aún  más.
-
-						> En EDA el event-sourcing está en el contexto de una aplicación o micro-servicio. Usar Kafka sólo
-						para implementar en ese contexto, no tiene mucho sentido. [Apache bookkeeper](https://bookkeeper.apache.org/) es una mejor solución
-						para un event-store 
-
+						[referencia imagen](https://medium.com/slalom-technology/introduction-to-schema-registry-in-kafka-915ccf06b902)
 						</script>
 					</section>
 				</section>
@@ -85,22 +65,13 @@
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-						### CQRS
+						
+						Dada la estructura desacoplada y distribuida de Kafka, el producto y el consumidor
+						nunca se comunican directamente ni tampoco se conocen ni deben conocerse, en especial
+						si se trabaja con micro-servicios. 
 
-						Command Query Responsability Segregation (CQRS) es un patrón por el cual se tienen estructuras
-						de datos separadas para leer y escribir información. CQRS no tiene que ver estrictamente con eventos,
-						ya que se puede implementar sin hacer uso de ellos, pero es bastante común que se combine CQRS con
-						Event Sourcing.
-							
-						</script>
-					</section>
-
-					<section data-markdown>
-						<script type="text/template">
-						> CQRS no es "event-first" y es un anti-patrón en una arquitectura EDA.
-
-						CQRS puede ser implementado con Kafka si se usan event-commands y Kafka como
-						event store. En mi opinión, esto viola el principio EDA y el uso pensado para KAfka.
+						> ¿Qué sucede si el productor escribe eventos con error o en un formato que el consumidor
+						no sabe como interpretar?
 							
 						</script>
 					</section>
@@ -109,555 +80,23 @@
 				<section>
 					<section data-markdown>
 						<script type="text/template">
-						### EDA Y Kafka son "Event-First"
-
-						> Un elemento clave de la notificación de eventos es que al sistema de origen no le importa mucho
-						la respuesta. A menudo no espera ninguna respuesta, o si hay una respuesta que le importa a la 
-						fuente, es indirecta. - _Martin Fowler_
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						- **Event-First:** Entro en una habitación, genero un evento de "habitación entrada" y la 
-						luz se enciende. Esta es una reacción a un evento.
-
-						- **Event-Command:** Entro en una habitación, enciendo el interruptor de la luz y la luz se enciende.
-						Este es un comando.
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						Event command es muy similar a lo que se realiza con un RPC como REST. Esto tiene los siguientes
-						problemas en un EDA:
-
-						- El endpoint debe ser conocido
-						- El método que es llamado debe ser conocido
-						- El servicio llamado tiene a retornar un resultado (independiente que sea asincrónico)
-
-						> EDA soporta event-commands, pero en  mi opinión viola la idea detrás de implementar EDA.
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### DDD
-
-						Una forma de trabajar con micro-servicios y equipo es diseñar orientado a los dominios de negocios
-
-						> El concepto más importante el el lenguaje común o lenguaje ubicuo, se debe usar el mismo lenguaje
-						en todo el producto, des el usuario final hasta el código y las bases de datos.
-
-						* Notar que el lenguaje es ubicuo dentro del mismo dominio, esto tiene un impacto importante
-						en la ventaja del uso de EDA y Kafka para micro-servicios.
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						Un Micro-Servicio implemente un bounded-context dentro de un sub-dominio. Los micro-servicios
-						son diseñados a través de "capacidades de negocio".
-
-						![ddd_process](imgs/ddd-process.png)
-
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-						### Bounded context
-
-						El concepto de contexto acotado se originó en los círculos de diseño impulsado por dominio (DDD).
-						Promueve un enfoque de modelo de objeto en primer lugar para un servicio,
-						definiendo un modelo de datos del que un servicio es responsable y al que está "vinculado".
-						En otras palabras, el servicio es propietario de estos datos y es responsable de su integridad y
-						mutabilidad.
-
-						> Ojo, el servicio está a cargo de su MUTABILIDAD
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-						![ddd-domain-examples](imgs/ddd-domain-examples.svg)	
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-						![ddd-bounded-context](imgs/ddd-bounded-context.svg)	
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						El/Los micro-servicio/s asociados a un bounded context son los únicos responsables
-						de su mutabilidad.
-
-						Acá comienzan los problemas:
-
-						- ¿Qué sucede si otro MS de otro bounded context necesita cambiar/leer datos?
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Se complica un poco más
-
-						En DDD y MS, es buena práctica persistir sólo los datos que son necesarios y dado
-						que es obligatorio respetar el lenguaje ubicuo, es factible y deseable que una misma
-						entidad tenga diferentes nombre y diferentes atributos dependiendo de su dominio.
-
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-						### Ejemplo
-
-						En un sistema de reclutamiento, la misma persona es llamada candidato en el dominio
-						de reclutamiento y luego es llamado colaborador en el dominio de gestión de personal.
-						Ambos tienen como atributo el rut y el CV, pero el colaborador tiene como atributo un
-						contrato, el cuál no existe en el candidatos. Además, algunos atributos son diferentes.
-						Como candidato usa su mail personal, pero como colaborador, su mail corporativo.
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### La primera solución: RPC (REST, gRPC, SOAP, etc)
-
-						La solución más común es exponer endpoints en cada MS para permitir mutaciones y lecturas
-						desde otros sistemas.
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### La primera solución: RPC (REST, gRPC, SOAP, etc)
-
-						Esto trae varios problemas:
-
-						- No se puede predecir con cuantos servicios necesitas comunicarse
-						- Se generan alto acoplamiento
-						- ¿Qué sucede si un servicio no está disponible?
-						- ¿Qué sucede con las transacciones que involucran más de un MS en el mismo dominio?
-						- No se puede predecir que información puede ser necesitada en el futuro en forma retroactiva.
-
-						</script>
-					</section>
-					<section>
-						<img src="imgs/microservice-rest.png"  height="600" width="600">
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Segunda solución: Usar asincronismo (Pub/Sub)
-
-						Mejor, pero todavía existen problemas:
-
-						- ¿Qué sucede si un servicio no está disponible?
-						- ¿Qué sucede con las transacciones que involucran más de un MS en el mismo dominio?
-						- No se puede predecir que información puede ser necesitada en el futuro en forma retroactiva
-
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							![microservice-pubsub](imgs/microservice-pubsub.png)	
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Solución EDA/Kafka
-
-						Para usar EDA y Kafka para comunicación entre micro-servicios, ampliemos la definición<nav>
-						de eventos:
-
-						> "Evento de Dominio es un hecho que cambia el estado de una o más entidades
-						en forma permanente e inmutable y cambio nuestra percepción del dominio
-						dentro del bounded context"
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Solución EDA/Kafka
-
-						Tomada esta definición, podemos usar EDa y Kafka y podemos resolver la mayoría de los inconvenientes.
-						Se debe tener en consideración:
-
-
-						- El orden se garantiza por partición:
-							* Todos los eventos relacionados deben tener una llave en común
-							* Todas los eventos de entidades relacionadas deben ir en el mismo tópico
-
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-						### Solución EDA/Kafka
-
-						> No es mala práctica crear un tópico por bounded context. Si las entidades son muchas,
-						se debería revisar la definición de los bounded context en vez de separar entidades.
-
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							![microservice-kafka](imgs/microservice-kafka.png)	
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown data-background-size="contain" data-background-image="imgs/saga.jpeg">
-						<script type="text/template">
-							# Patrón SAGA
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Transacciones que involucran entidades en diferentes micro-servicios
-
-						Idealmente cada micro-servicio tiene su propia persistencia y está obligado
-						a ser el único responsable de sus mutaciones.
-
-						¿Qué sucede si una mutación requiere cambios en el estado de 
-						varias entidades relacionadas por una llave?
-
-						Esto es una transacción, por ejemplo, se genera una orden, se reserva el stock, se realiza el pago.
-						Si el pago falla, se debe cancelar la transacción completa.
 						
+						### Registro de esquema
+
+						> El registro de esquemas es un aplicación independiente que permite la distribución
+						de esquemas de datos al productor y al consumidor.
 						</script>
 					</section>
-				</section>
-
-				<section>
 					<section data-markdown>
 						<script type="text/template">
-						### Transacciones que involucran entidades en diferentes micro-servicios
-
-						Es aún más complicado. El orden puede ser importante. Por ejemplo:
 						
-						- La reserva de stock y el pago se realizan en paralelo:
-							* Si el pago falla, el stock deber ser liberado
-							* Si el pago es exitoso y luego falla la liberación de stock, el pago debe ser
-							cancelado y además, el stock debe revisar el estado del pago.
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-						### Transacciones que involucran entidades en diferentes micro-servicios
+						![schema-registry](imgs/schema-registry.png)
 
-						- Agréguemos la opción que se pueda cancelar la compra en forma inmediata si no se ha retirado
-						el producto del proveedor
-						- Empeoremoslo, cobremos de la tarjeta de crédito a medida que los productos son embalados y enviados. 
-						
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-						### Concepto tradicional de transacciones
-
-						Hemos estado limitados a un concepto de transacciones donde está son ejecutadas en un orden
-						pre-establecido.
+						[referencia imagen](https://medium.com/slalom-technology/introduction-to-schema-registry-in-kafka-915ccf06b902)	
 						</script>
 					</section>
 				</section>
 
-				<section data-markdown>
-					<script type="text/template">
-					### Patrón SAGA
-
-					> Un patrón de saga es una secuencia de transacciones locales donde cada transacción actualiza 
-					datos dentro de un solo servicio. La primera transacción en una saga se inicia mediante una 
-					solicitud externa correspondiente a la operación del sistema, y luego cada paso posterior se 
-					activa al completar el anterior.
-					</script>
-				</section>
-
-				<section data-markdown>
-					<script type="text/template">
-					### Patrón SAGA
-
-					El patrón SAGA soluciona el problema de las transacciones distribuidas a través de 2
-					modelos:
-
-					- Coreografía
-					- Orquestación
-
-					</script>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Diferencias entre 2 Phase Commit y SAGA
-
-						2PC trata todo como una sólo transacción ACID, es decir, todas la entidades
-						de la transacción siempre están en un estado consistente. SAGA apuesta a las compensaciones
-						y a la consistencia eventual. **2PC es un único punto de falla**.
-
-						> Leer teorema de [CAP](https://towardsdatascience.com/cap-theorem-and-distributed-database-management-systems-5c2be977950e)
-
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-						### Kafka es CA (no es tolerante a particiones)
-
-						Pero el elemento principal de Kafka son las particiones!.
-
-						> Cómo se ha explicado, la probabilidad existe, pero es muy baja: [aquí se explica muy bien](https://aphyr.com/posts/293-jepsen-kafka).
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Patrón SAGA Coreografía
-
-						Cuando se usa coreografía, cada servicio es responsable de escuchar los eventos y reaccionar
-						compensando en sus datos
-					
-						> Esto genere un problema. La reacción genera otro evento que podría provocar efectos
-						colaterales en la transacción o incluso generar un loop infinito.
-
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							![saga-cor](imgs/saga-cor.png)	
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Patrón SAGA Coreografía
-
-						Kafka y EDA funcionan muy bien con este patrón. Cada servicio es responsable de reaccionar
-						a los distintos eventos y compensar dentro del contexto de la transacción a través
-						de la llave del evento.
-
-						> Notar la importancia de que la llave agrupe todos los eventos relacionados. Sin esto,
-						no se puede aplicar el patrón.
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Patrón SAGA Orquestación
-
-						Cuando se usa coreografía, un servicio se encarga de coordinar las compensaciones
-						entre los servicios afectados.
-					
-						> En EDA, por defecto no es útil, siendo estricto, el orquestador debe generar un evento
-						para compensar y de todas formas cada servicio es responsable de escucharlo.Es útil  cuando 
-						la reacción genera otro evento que podría provocar efectos colaterales en la transacción o incluso generar un loop infinito.
-
-						</script>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							![saga-orch](imgs/saga-orch.png)	
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### SAGA y EDA
-
-						SAGA con coreografía es natural en EDA y Kafka, tanto, que ni siquiera vale la pena
-						mencionarlo como patrón independiente. 
-
-						> Adicionalmente, el orden garantizado por partición permite solucionar problemas complejos
-						cuando las entidades afectadas están en el mismo tópico :).
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### SAGA, EDA y transacciones múltiple particiones/tópicos
-
-						No todo es miel sobre hojuelas. Kafka configurado con exactly-once y una buena elección
-						de tópicos y llaves, puede solucionar la mayoría de los problemas de transacciones.
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						¿Qué sucede si los eventos de una transacción no están en la misma partición?
-						
-						Eso se puede deber a llaves distintas o el uso de más de un tópico en la transacción.
-
-						> **Primera solución:** SAGA orquestación
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### SAGA, EDA y transacciones múltiple particiones/tópicos
-
-						No todo es miel sobre hojuelas. Kafka configurado con exactly-once y una buena elección
-						de tópicos y llaves, puede solucionar la mayoría de los problemas de transacciones.
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### La importancia de Kafka en SAGA
-
-						Uno de los problemas principales de SAGA es la probabilidad de eventos repetidos.
-						En este caso, al ser eventos compensatorios, puede ser más complejo evitar
-						efectos colaterales y la de-duplicación.
-
-						> Kafka configurado con idempotencia y ACK=all, disminuye de manera dramática
-						la probabilidad de duplicación y puede ser considerado Exactly-Once y por lo tanto
-						el orquestador (o los servicios) pueden confiar en que el evento ha sido entregado.
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Segunda solución: Transacciones de Kafka
-
-						Si todos os cambios de estado y el resultado de la transacción se persisten en kafka,
-						se pueden usar las transacciones de Kafka.
-
-						> Las transacciones las vamos a ver en otro módulo.
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Preview
-
-						> Generar eventos requiere disciplina. Si apostamos por guardar todos los eventos, estos
-						ya son generados en el log de eventos de las BDs. Se puede usar [Debezium](https://debezium.io/) para transformar
-						el log de eventos de la BDs en un stream de Kafka
-
-						Existen muchos ejemplos sobre el uso de Debezium y Kafka para EDA [acá](https://github.com/debezium/debezium-examples).
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown data-background-size="contain" data-background-image="https://media.giphy.com/media/ZFzpCzdWotBIdiYoLA/giphy.gif">
-						<script type="text/template">
-							# Ingeniería del Caos	
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### ¿Como probar una aplicación distribuida?
-
-						Un problema dle desarrollo de EDA es como determinar si el sistema está preparado para los fallos.
-						Como hemos visto, siempre existe una probabilidad de perdida de datos o duplicación de datos.
-
-						> La solución: Ingeniería del caos, es decir, introducir problemas como fallas de red, latencia, etc Y
-						luego verificar que el sistema se recupera.
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Service Mesh
-
-						Los service mesh en Kubernetes (y también fuera), interceptan la comunicación entre servicios
-						y permiten manipularla, es decir, permiten inyectar latencia, errores, etc. Algunos service mesh:
-
-						- [Istio](https://istio.io/)
-						- [Linkerd](https://linkerd.io/)
-
-						</script>
-					</section>
-				</section>
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Servicios para Chaos Engineer
-
-						El producto comercial más reconocido es [Gremlin](https://www.gremlin.com/). También existen otras alternativas
-						con opción OSS
-
-						- [ChaosToolkit](https://chaostoolkit.org/)
-						- [Chaos Mesh](https://chaos-mesh.org/)
-						
-						> En el código base del laboratorio, hay una implementación con Chaos Mesh en Kind. 
-
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown data-background-size="contain" data-background-image="https://media.giphy.com/media/iNQ2cIve8rUqI/giphy.gif">
-						<script type="text/template">
-							# Laboratorio	
-						</script>
-					</section>
-				</section>
-
-				<section>
-					<section data-markdown>
-						<script type="text/template">
-						### Laboratorio
-
-						Vamos a revisar:
-
-						- [Choreography Saga Pattern With Spring Boot – Microservice Design Patterns](https://www.vinsguru.com/choreography-saga-pattern-with-spring-boot/)
-						- [Microservice Pattern – Orchestration Saga Pattern With Spring Boot + Kafka](https://www.vinsguru.com/architectural-pattern-orchestration-saga-pattern-implementation-using-kafka/)
-
-						</script>
-					</section>
-				</section>
 			</div>
 		</div>
 
